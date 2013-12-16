@@ -1,11 +1,11 @@
-module(..., package.seeall)
 
 abuild_conf_file = "/etc/abuild.conf"
 abuild_functions = "/usr/share/abuild/functions.sh"
 
 local abuild_conf = {}
+local M = {}
 
-function get_abuild_conf(var)
+function M.get_abuild_conf(var)
 	-- check cache
 	if abuild_conf[var] ~= nil then
 		return abuild_conf[var]
@@ -106,7 +106,7 @@ end
 
 
 -- return a key list with makedepends and depends
-function all_deps(p)
+function M.all_deps(p)
 	local m = {}
 	local k,v
 	if p == nil then
@@ -125,7 +125,7 @@ function all_deps(p)
 	return m
 end
 
-function is_remote(url)
+function M.is_remote(url)
 	local _,pref
 	for _,pref in pairs{ "^http://", "^ftp://", "^https://", ".*::.*" } do
 		if string.match(url, pref) then
@@ -136,19 +136,19 @@ function is_remote(url)
 end
 
 -- iterate over all entries in source and execute the function for remote
-function foreach_remote_source(p, func)
+function M.foreach_remote_source(p, func)
 	local _,s
 	if p == nil or type(p.source) ~= "table" then
 		return
 	end
 	for _,url in pairs(p.source) do
-		if is_remote(url) then
+		if M.is_remote(url) then
 			func(url)
 		end
 	end
 end
 
-function get_maintainer(pkg)
+function M.get_maintainer(pkg)
 	if pkg == nil or pkg.dir == nil then
 		return nil
 	end
@@ -168,28 +168,28 @@ function get_maintainer(pkg)
 	return nil
 end
 
-function get_repo_name(pkg)
+function M.get_repo_name(pkg)
 	if pkg == nil or pkg.dir == nil then
 		return nil
 	end
 	return string.match(pkg.dir, ".*/(.*)/.*")
 end
 
-function get_apk_filename(pkg)
+function M.get_apk_filename(pkg)
 	return pkg.pkgname.."-"..pkg.pkgver.."-r"..pkg.pkgrel..".apk"
 end
 
-function get_apk_file_path(pkg)
+function M.get_apk_file_path(pkg)
 	local pkgdest = get_abuild_conf("PKGDEST")
 	if pkgdest ~= nil and pkgdest ~= "" then
-		return pkgdest.."/"..get_apk_filename(pkg)
+		return pkgdest.."/"..M.get_apk_filename(pkg)
 	end
-	local repodest = get_abuild_conf("REPODEST")
+	local repodest = M.get_abuild_conf("REPODEST")
 	if repodest ~= nil and repodest ~= "" then
-		local arch = get_abuild_conf("CARCH")
-		return repodest.."/"..get_repo_name(pkg).."/"..arch.."/"..get_apk_filename(pkg)
+		local arch = M.get_abuild_conf("CARCH")
+		return repodest.."/"..M.get_repo_name(pkg).."/"..arch.."/"..M.get_apk_filename(pkg)
 	end
-	return pkg.dir.."/"..get_apk_filename(pkg)
+	return pkg.dir.."/"..M.get_apk_filename(pkg)
 end
 
 
@@ -289,10 +289,11 @@ function Aports:foreach_aport(f)
 	end)
 end
 
-function new(repodirs)
+function M.new(repodirs)
 	local h = Aports
 	h.repodirs = repodirs
 	h.apks, h.revdeps = init_apkdb(repodirs)
 	return h
 end
 
+return M
