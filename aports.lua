@@ -203,7 +203,7 @@ local function init_apkdb(repodirs)
 		if pkgdb[a.pkgname] == nil then
 			pkgdb[a.pkgname] = {}
 		end
-		a.all_deps = all_deps
+		a.all_deps = M.all_deps
 		table.insert(pkgdb[a.pkgname], a)
 		-- add subpackages to package db
 		local k,v
@@ -214,7 +214,7 @@ local function init_apkdb(repodirs)
 			table.insert(pkgdb[v], a)
 		end
 		-- add to reverse dependencies
-		for v in pairs(all_deps(a)) do
+		for v in pairs(M.all_deps(a)) do
 			if revdeps[v] == nil then
 				revdeps[v] = {}
 			end
@@ -225,26 +225,29 @@ local function init_apkdb(repodirs)
 end
 
 local Aports = {}
-function Aports:recurs_until(pn, func)
+function Aports:recursive_dependencies(pn)
 	local visited={}
 	local apkdb = self.apks
-	function recurs(pn)
-		if pn == nil or visited[pn] or apkdb[pn] == nil then
-			return false
-		end
-		visited[pn] = true
-		local _, p
-		for _, p in pairs(apkdb[pn]) do
-			local d
-			for d in pairs(all_deps(p)) do
-				if recurs(d) then
-					return true
+
+	return coroutine.wrap(function()
+		function recurs(pn)
+			if pn == nil or visited[pn] or apkdb[pn] == nil then
+				return false
+			end
+			visited[pn] = true
+			local _, p
+			for _, p in pairs(apkdb[pn]) do
+				local d
+				for d in pairs(M.all_deps(p)) do
+					if recurs(d) then
+						return true
+					end
 				end
 			end
+			coroutine.yield(pn)
 		end
-		return func(pn)
-	end
-	return recurs(pn)
+		return recurs(pn)
+	end)
 end
 
 function Aports:target_packages(pkgname)
