@@ -268,11 +268,12 @@ function Aports:each()
 	end)
 end
 
-function Aports:foreach_revdep(pkg, f)
-	local k,v
-	for k,v in pairs(self.revdeps[pkg] or {}) do
-		f(k,v)
-	end
+function Aports:each_reverse_dependency(pkg)
+	return coroutine.wrap(function()
+		for k,v in pairs(self.revdeps[pkg] or {}) do
+			coroutine.yield(k,v)
+		end
+	end)
 end
 
 function Aports:foreach_pkg(pkg, f)
