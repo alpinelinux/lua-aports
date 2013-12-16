@@ -251,12 +251,11 @@ function Aports:recursive_dependencies(pn)
 end
 
 function Aports:target_packages(pkgname)
-	local i,v
-	local t = {}
-	for k,v in pairs(self.apks[pkgname]) do
-		table.insert(t, pkgname.."-"..v.pkgver.."-r"..v.pkgrel..".apk")
-	end
-	return t
+	return coroutine.wrap(function()
+		for k,v in pairs(self.apks[pkgname]) do
+			coroutine.yield(pkgname.."-"..v.pkgver.."-r"..v.pkgrel..".apk")
+		end
+	end)
 end
 
 function Aports:each()
