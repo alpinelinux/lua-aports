@@ -259,11 +259,13 @@ function Aports:target_packages(pkgname)
 	return t
 end
 
-function Aports:foreach(f)
-	local k,v
-	for k,v in pairs(self.apks) do
-		f(k,v)
-	end
+function Aports:each()
+	local apks = self.apks
+	return coroutine.wrap(function()
+		for k,v in pairs(self.apks) do
+			coroutine.yield(k,v)
+		end
+	end)
 end
 
 function Aports:foreach_revdep(pkg, f)
