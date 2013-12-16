@@ -135,17 +135,18 @@ function M.is_remote(url)
 	return false
 end
 
--- iterate over all entries in source and execute the function for remote
-function M.foreach_remote_source(p, func)
-	local _,s
+-- iterator for all remote sources of given pkg/aport
+function M.remote_sources(p)
 	if p == nil or type(p.source) ~= "table" then
-		return
+		return nil
 	end
-	for _,url in pairs(p.source) do
-		if M.is_remote(url) then
-			func(url)
+	return coroutine.wrap(function()
+		for _,url in pairs(p.source) do
+			if M.is_remote(url) then
+				coroutine.yield(url)
+			end
 		end
-	end
+	end)
 end
 
 function M.get_maintainer(pkg)
