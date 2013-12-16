@@ -276,14 +276,15 @@ function Aports:each_reverse_dependency(pkg)
 	end)
 end
 
-function Aports:foreach_pkg(pkg, f)
-	local k,v
+function Aports:each_pkg(pkg, f)
 	if self.apks[pkg] == nil then
 		io.stderr:write("WARNING: "..pkg.." has no data\n")
 	end
-	for k,v in pairs(self.apks[pkg]) do
-		f(k,v)
-	end
+	return coroutine.wrap(function()
+		for k,v in pairs(self.apks[pkg]) do
+			coroutine.yield(k,v)
+		end
+	end)
 end
 
 function Aports:foreach_aport(f)
