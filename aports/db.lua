@@ -146,7 +146,7 @@ function Aports:target_packages(pkgname)
 	end)
 end
 
-function Aports:each()
+function Aports:each_name()
 	local apks = self.apks
 	return coroutine.wrap(function()
 		for k,v in pairs(self.apks) do
@@ -163,24 +163,32 @@ function Aports:each_reverse_dependency(pkg)
 	end)
 end
 
-function Aports:each_pkg(pkg, f)
-	if self.apks[pkg] == nil then
-		io.stderr:write("WARNING: "..pkg.." has no data\n")
+function Aports:each_pkg_with_name(name)
+	if self.apks[name] == nil then
+		io.stderr:write("WARNING: "..name.." has no data\n")
 	end
 	return coroutine.wrap(function()
-		for k,v in pairs(self.apks[pkg]) do
-			coroutine.yield(k,v)
+		for index, pkg in pairs(self.apks[name]) do
+			coroutine.yield(pkg, index)
+		end
+	end)
+end
+
+function Aports:each()
+	return coroutine.wrap(function()
+		for name, a in self:each_name() do
+			for _, pkg in pairs(a) do
+				coroutine.yield(pkg, name)
+			end
 		end
 	end)
 end
 
 function Aports:each_aport()
 	return coroutine.wrap(function()
-		for pkgname,v in self:each() do
-			for _,pkg in self:each_pkg(pkgname) do
-				if pkgname == pkg.pkgname then
-					coroutine.yield(pkg)
-				end
+		for pkg, name in self:each() do
+			if name == pkg.pkgname then
+				coroutine.yield(pkg)
 			end
 		end
 	end)
