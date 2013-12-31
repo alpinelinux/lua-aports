@@ -1,28 +1,6 @@
 
-abuild_conf_file = "/etc/abuild.conf"
-abuild_functions = "/usr/share/abuild/functions.sh"
-
-local abuild_conf = {}
+local abuild = require('aports.abuild')
 local M = {}
-
-function M.get_abuild_conf(var)
-	-- check cache
-	if abuild_conf[var] ~= nil then
-		return abuild_conf[var]
-	end
-
-	-- use os env var
-	abuild_conf[var] = os.getenv(var)
-	if abuild_conf[var] ~= nil then
-		return abuild_conf[var]
-	end
-
-	-- parse config file
-	local f = io.popen(" . "..abuild_conf_file..' ; echo -n "$'..var..'"')
-	abuild_conf[var] = f:read("*all")
-	f:close()
-	return abuild_conf[var]
-end
 
 local function split_subpkgs(str)
 	local t = {}
@@ -75,7 +53,7 @@ local function parse_apkbuilds(dirs)
 		str = str..v.."/*/APKBUILD "
 	end
 
-	local p = io.popen(". "..abuild_functions..";"..[[
+	local p = io.popen(". "..abuild.functions..";"..[[
 		for i in ]]..str..[[; do
 			pkgname=
 			pkgver=
@@ -181,13 +159,13 @@ function M.get_apk_filename(pkg)
 end
 
 function M.get_apk_file_path(pkg)
-	local pkgdest = get_abuild_conf("PKGDEST")
+	local pkgdest = abuild.get_conf("PKGDEST")
 	if pkgdest ~= nil and pkgdest ~= "" then
 		return pkgdest.."/"..M.get_apk_filename(pkg)
 	end
-	local repodest = M.get_abuild_conf("REPODEST")
+	local repodest = abuild.get_conf("REPODEST")
 	if repodest ~= nil and repodest ~= "" then
-		local arch = M.get_abuild_conf("CARCH")
+		local arch = abuild.get_conf("CARCH")
 		return repodest.."/"..M.get_repo_name(pkg).."/"..arch.."/"..M.get_apk_filename(pkg)
 	end
 	return pkg.dir.."/"..M.get_apk_filename(pkg)
