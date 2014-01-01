@@ -43,15 +43,15 @@ local function split_apkbuild(line)
 end
 
 -- parse the APKBUILDs and return an iterator
-local function parse_apkbuilds(dirs)
+local function parse_apkbuilds(aportsdir, repos)
 	local i,v, p
 	local str=""
-	if dirs == nil then
+	if repos == nil then
 		return nil
 	end
 	--expand repos
-	for i,v in ipairs(dirs) do
-		str = str..v.."/*/APKBUILD "
+	for _,repo in pairs(repos) do
+		str = ("%s %s/%s/*/APKBUILD"):format(str, aportsdir, repo)
 	end
 
 	local p = io.popen(". "..abuild.functions..";"..[[
@@ -82,11 +82,11 @@ local function parse_apkbuilds(dirs)
 	end
 end
 
-local function init_apkdb(repodirs)
+local function init_apkdb(aportsdir, repos)
 	local pkgdb = {}
 	local revdeps = {}
 	local a
-	for a in parse_apkbuilds(repodirs) do
+	for a in parse_apkbuilds(aportsdir, repos) do
 	--	io.write(a.pkgname.." "..a.pkgver.."\t"..a.dir.."\n")
 		if pkgdb[a.pkgname] == nil then
 			pkgdb[a.pkgname] = {}
@@ -194,10 +194,11 @@ function Aports:each_aport()
 	end)
 end
 
-function M.new(repodirs)
+function M.new(aportsdir, ...)
 	local h = Aports
-	h.repodirs = repodirs
-	h.apks, h.revdeps = init_apkdb(repodirs)
+	h.aportsdir = aportsdir
+	h.repos = {...}
+	h.apks, h.revdeps = init_apkdb(aportsdir, h.repos)
 	return h
 end
 
