@@ -204,6 +204,28 @@ function Aports:each_need_build()
 	end)
 end
 
+function Aports:each_in_build_order(namelist)
+	local pkgs = {}
+	for _,name in pairs(namelist) do
+		for pkg in self:each_pkg_with_name(name) do
+			pkgs[pkg.dir] = true
+		end
+	end
+
+	return coroutine.wrap(function()
+		for _,name in pairs(namelist) do
+			for dep in self:recursive_dependencies(name) do
+				for pkg in self:each_pkg_with_name(dep) do
+					if pkgs[pkg.dir] then
+						coroutine.yield(pkg)
+						pkgs[pkg.dir] = nil
+					end
+				end
+			end
+		end
+	end)
+end
+
 function M.new(aportsdir, ...)
 	local h = Aports
 	h.aportsdir = aportsdir
