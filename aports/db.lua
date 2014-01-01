@@ -176,8 +176,8 @@ end
 
 function Aports:each()
 	return coroutine.wrap(function()
-		for name, a in self:each_name() do
-			for _, pkg in pairs(a) do
+		for name, pkglist in self:each_name() do
+			for _, pkg in pairs(pkglist) do
 				coroutine.yield(pkg, name)
 			end
 		end
@@ -189,6 +189,16 @@ function Aports:each_aport()
 		for pkg, name in self:each() do
 			if name == pkg.pkgname then
 				coroutine.yield(pkg)
+			end
+		end
+	end)
+end
+
+function Aports:each_need_build()
+	return coroutine.wrap(function()
+		for aport in self:each_aport() do
+			if not aport:apk_file_exists() then
+				coroutine.yield(aport)
 			end
 		end
 	end)
