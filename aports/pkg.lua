@@ -80,14 +80,25 @@ end
 function M.get_apk_file_path(pkg)
 	local pkgdest = abuild.get_conf("PKGDEST")
 	if pkgdest ~= nil and pkgdest ~= "" then
-		return pkgdest.."/"..M.get_apk_filename(pkg)
+		return pkgdest.."/"..M.get_apk_file_name(pkg)
 	end
 	local repodest = abuild.get_conf("REPODEST")
 	if repodest ~= nil and repodest ~= "" then
-		local arch = abuild.get_conf("CARCH")
-		return repodest.."/"..M.get_repo_name(pkg).."/"..arch.."/"..M.get_apk_filename(pkg)
+		local arch = abuild.get_arch()
+		return repodest.."/"..M.get_repo_name(pkg).."/"..arch.."/"..M.get_apk_file_name(pkg)
 	end
-	return pkg.dir.."/"..M.get_apk_filename(pkg)
+	return pkg.dir.."/"..M.get_apk_file_name(pkg)
+end
+
+function M.apk_file_exists(pkg)
+	-- technically we check if it is readable...
+	local filepath = M.get_apk_file_path(pkg)
+	local f = io.open(filepath)
+	if f == nil then
+		return false
+	end
+	f:close()
+	return true
 end
 
 function M.init(pkg)
@@ -97,5 +108,6 @@ function M.init(pkg)
 	pkg.get_repo_name = M.get_repo_name
 	pkg.get_apk_file_name = M.get_apk_file_name
 	pkg.get_apk_file_path = M.get_apk_file_path
+	pkg.apk_file_exists = M.apk_file_exists
 end
 return M
