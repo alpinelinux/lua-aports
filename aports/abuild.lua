@@ -23,4 +23,14 @@ function M.get_conf(var)
 	return abuild_conf[var]
 end
 
+function M.get_arch()
+	if abuild_conf.CARCH then
+		return abuild_conf.CARCH
+	end
+	local f = io.popen(" . "..M.functions..' ; echo -n "$CARCH"')
+	abuild_conf.CARCH = f:read("*all")
+	f:close()
+	return abuild_conf.CARCH
+end
+
 return M
