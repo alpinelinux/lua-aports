@@ -1,7 +1,6 @@
 
 local M = {}
 local abuild = require('aports.abuild')
-local abuild_arch = abuild.get_arch()
 
 -- return a key list with makedepends and depends
 function M.all_deps(p)
@@ -79,13 +78,11 @@ function M.get_apk_file_name(pkg)
 end
 
 function M.get_apk_file_path(pkg)
-	local pkgdest = abuild.get_conf("PKGDEST")
-	if pkgdest ~= nil and pkgdest ~= "" then
-		return pkgdest.."/"..M.get_apk_file_name(pkg)
+	if abuild.pkgdest ~= nil and abuild.pkgdest ~= "" then
+		return abuild.pkgdest.."/"..M.get_apk_file_name(pkg)
 	end
-	local repodest = abuild.get_conf("REPODEST")
-	if repodest ~= nil and repodest ~= "" then
-		return repodest.."/"..M.get_repo_name(pkg).."/"..abuild_arch.."/"..M.get_apk_file_name(pkg)
+	if abuild.repodest ~= nil and abuild.epodest ~= "" then
+		return abuild.repodest.."/"..M.get_repo_name(pkg).."/"..abuild.arch.."/"..M.get_apk_file_name(pkg)
 	end
 	return pkg.dir.."/"..M.get_apk_file_name(pkg)
 end
