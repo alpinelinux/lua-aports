@@ -27,6 +27,14 @@ local function split(str)
 	return t
 end
 
+local function split_arch(archstr)
+	local t = {}
+	for _,arch in pairs(split(archstr)) do
+		t[arch] = true
+	end
+	return t
+end
+
 local function split_apkbuild(line)
 	local r = {}
 	local dir,pkgname, pkgver, pkgrel, arch, depends, makedepends, subpackages, source, url = string.match(line, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)")
@@ -39,6 +47,7 @@ local function split_apkbuild(line)
 	r.subpackages = split_subpkgs(subpackages)
 	r.source = split(source)
 	r.url = url
+	r.arch = split_arch(arch)
 	return r
 end
 
