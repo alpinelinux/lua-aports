@@ -33,4 +33,9 @@ function M.get_arch()
 	return abuild_conf.CARCH
 end
 
+M.arch = M.get_arch()
+M.repodest = M.get_conf("REPODEST")
+M.pkgdest = M.get_conf("PKGDEST")
+M.chost = M.get_conf("CHOST")
+
 return M
