@@ -206,7 +206,7 @@ end
 function Aports:each_need_build()
 	return coroutine.wrap(function()
 		for aport in self:each_aport() do
-			if not aport:apk_file_exists() then
+			if aport:arch_enabled() and not aport:apk_file_exists() then
 				coroutine.yield(aport)
 			end
 		end
