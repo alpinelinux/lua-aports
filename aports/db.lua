@@ -235,6 +235,18 @@ function Aports:each_in_build_order(namelist)
 	end)
 end
 
+function Aports:git_describe()
+	local cmd = ("git --git-dir %s/.git describe"):format(self.aportsdir)
+	local f = io.popen(cmd)
+	if f == nil then
+		return nil
+	end
+	local result = f:read("*line")
+	f:read("*a")
+	f:close()
+	return result
+end
+
 function M.new(aportsdir, ...)
 	local h = Aports
 	h.aportsdir = aportsdir
