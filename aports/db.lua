@@ -188,9 +188,20 @@ function Aports:each_reverse_dependency(pkg)
 	end)
 end
 
+function Aports:each_known_dependency(pkg)
+	return coroutine.wrap(function()
+		for dep in pkg:each_dependency() do
+			if self.apks[dep] then
+				coroutine.yield(dep)
+			end
+		end
+	end)
+end
+
 function Aports:each_pkg_with_name(name)
 	if self.apks[name] == nil then
-		io.stderr:write("WARNING: "..name.." has no data\n")
+		io.stderr:write("WARNING: "..name..": not provided by any known APKBUILD\n")
+		return function() return nil end
 	end
 	return coroutine.wrap(function()
 		for index, pkg in pairs(self.apks[name]) do
@@ -263,8 +274,8 @@ function Aports:git_describe()
 	return result
 end
 
-function Aports:deps_exists(pkg)
-	for name in pkg:each_dependency() do
+function Aports:known_deps_exists(pkg)
+	for name in self:each_known_dependency(pkg) do
 		for dep in self:each_pkg_with_name(name) do
 			if dep.pkgname ~= pkg.pkgname and dep:arch_enabled() and not dep:all_apks_exists() then
 				return false

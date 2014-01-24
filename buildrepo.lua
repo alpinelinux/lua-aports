@@ -178,7 +178,7 @@ for _,repo in pairs(args) do
 		io.write(("%d/%d %d/%d %s\n"):format(tried, #pkgs,
 					totally_built, stats[repo].aports,
 					aport.pkgname))
-		if not db:deps_exists(aport) then
+		if not db:known_deps_exists(aport) then
 			warn("%s: Skipped due to missing dependencies", aport.pkgname)
 		elseif build_aport(aport, repodest, logdir, opts.s) then
 			built = built + 1
