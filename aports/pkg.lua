@@ -94,6 +94,18 @@ function M.apk_file_exists(pkg, name)
 	return lfs.attributes(filepath) ~= nil
 end
 
+function M.all_apks_exists(pkg)
+	if not pkg:apk_file_exists() then
+		return false
+	end
+	for _, subpkgname in pairs(pkg.subpackages) do
+		if not pkg:apk_file_exists(subpkgname) then
+			return false
+		end
+	end
+	return true
+end
+
 function M.arch_enabled(pkg)
 	return pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch]
 end
@@ -106,6 +118,7 @@ function M.init(pkg)
 	pkg.get_apk_file_name = M.get_apk_file_name
 	pkg.get_apk_file_path = M.get_apk_file_path
 	pkg.apk_file_exists = M.apk_file_exists
+	pkg.all_apks_exists = M.all_apks_exists
 	pkg.arch_enabled = M.arch_enabled
 end
 return M
