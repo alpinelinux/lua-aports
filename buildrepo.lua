@@ -88,7 +88,7 @@ local function build_aport(aport, repodest, logdir, skip_failed)
 	else
 		log = io.stdout
 	end
-	local pipe = io.popen(("REPODEST='%s' abuild -r -m 2>&1"):format(aport.dir, repodest))
+	local pipe = io.popen(("REPODEST='%s' abuild -r -m 2>&1"):format(repodest))
 	for line in pipe:lines() do
 		log:write(("%s\n"):format(line))
 	end
