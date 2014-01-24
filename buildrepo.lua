@@ -179,9 +179,7 @@ for _,repo in pairs(args) do
 		local apkrepodir = ("%s/%s/%s"):format(repodest, repo, abuild.arch)
 		for file in lfs.dir(apkrepodir) do
 			if file:match("%.apk$") and not keep[file] then
-				if not logdirbase or opts.n then
-					print("delete:", file)
-				end
+				print("Deleting ", file)
 				if not opts.n then
 					os.remove(("%s/%s"):format(apkrepodir, file))
 				end
@@ -192,6 +190,7 @@ for _,repo in pairs(args) do
 
 	-- generate new apkindex
 	if not opts.n then
+		print("Updating apk index")
 		apkrepo.update_index(("%s/%s"):format(repodest, repo),
 				abuild.arch, db:git_describe())
 	end
