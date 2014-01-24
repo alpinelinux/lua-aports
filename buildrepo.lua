@@ -150,6 +150,7 @@ for _,repo in pairs(args) do
 	local unsorted = {}
 	local logdir = nil
 	stats[repo] = {}
+	local start_time = os.clock()
 
 	-- count total aports
 	stats[repo].aports = 0
@@ -222,11 +223,14 @@ for _,repo in pairs(args) do
 	stats[repo].built = built
 	stats[repo].tried = tried
 	stats[repo].deleted = deleted
+	stats[repo].time = os.clock() - start_time
 end
 
 for repo,stat in pairs(stats) do
-	print(repo.." aports:", stat.aports)
 	print(repo.." built:", stat.built)
 	print(repo.." tried:", stat.tried)
 	print(repo.." deleted:", stat.deleted)
+	print(repo.." time:", stat.time)
+	print(repo.." total built:", stat.aports - stat.tried + stat.built)
+	print(repo.." total aports:", stat.aports)
 end
