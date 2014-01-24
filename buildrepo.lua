@@ -180,8 +180,10 @@ for _,repo in pairs(args) do
 	tried = 0
 	for aport in db:each_in_build_order(pkgs) do
 		tried = tried + 1
-		io.write(("%d/%d/%d/%d %s\n"):format(built, tried, #pkgs,
-					stats[repo].aports, aport.pkgname))
+		local totally_built = stats[repo].aports - #pkgs + built
+		io.write(("%d/%d %d/%d %s\n"):format(tried, #pkgs,
+					totally_built, stats[repo].aports,
+					aport.pkgname))
 		if build_aport(aport, repodest, logdir, opts.s) then
 			built = built + 1
 		else
