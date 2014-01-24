@@ -3,7 +3,7 @@ local M = {}
 local abuild = require('aports.abuild')
 local pkg = require('aports.pkg')
 
-local function split_subpkgs(str)
+local function split_subpkgs(str, linguas, pkgname)
 	local t = {}
 	local e
 	if (str == nil) then
@@ -11,6 +11,9 @@ local function split_subpkgs(str)
 	end
 	for e in string.gmatch(str, "%S+") do
 		t[#t + 1] = string.gsub(e, ":.*", "")
+	end
+	for k,v in pairs(linguas) do
+		t[#t + 1] = ("%s-lang-%s"):format(pkgname, v)
 	end
 	return t
 end
@@ -37,14 +40,15 @@ end
 
 local function split_apkbuild(line)
 	local r = {}
-	local dir,pkgname, pkgver, pkgrel, arch, depends, makedepends, subpackages, source, url = string.match(line, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)")
+	local dir,pkgname, pkgver, pkgrel, arch, depends, makedepends, subpackages, linguas, source, url = string.match(line, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)")
 	r.dir = dir
 	r.pkgname = pkgname
 	r.pkgver = pkgver
 	r.pkgrel = pkgrel
 	r.depends = split(depends)
 	r.makedepends = split(makedepends)
-	r.subpackages = split_subpkgs(subpackages)
+	r.linguas = split(linguas)
+	r.subpackages = split_subpkgs(subpackages, r.linguas, pkgname)
 	r.source = split(source)
 	r.url = url
 	r.arch = split_arch(arch)
@@ -72,13 +76,14 @@ local function parse_apkbuilds(aportsdir, repos)
 			depends=
 			makedepends=
 			subpackages=
+			linguas=
 			source=
 			url=
 			dir="${i%/APKBUILD}";
 			[ -n "$dir" ] || exit 1;
 			cd "$dir";
 			. ./APKBUILD;
-			echo $dir\|$pkgname\|$pkgver\|$pkgrel\|$arch\|$depends\|$makedepends\|$subpackages\|$source\|$url ;
+			echo $dir\|$pkgname\|$pkgver\|$pkgrel\|$arch\|$depends\|$makedepends\|$subpackages\|$linguas\|$source\|$url ;
 		done;
 	]])
 	return function()
