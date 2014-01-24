@@ -154,7 +154,9 @@ for _,repo in pairs(args) do
 	-- count total aports
 	stats[repo].aports = 0
 	for aport in db:each_aport() do
-		stats[repo].aports = stats[repo].aports + 1
+		if aport:arch_enabled() then
+			stats[repo].aports = stats[repo].aports + 1
+		end
 	end
 
 	-- find out what needs to be built
