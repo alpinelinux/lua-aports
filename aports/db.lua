@@ -251,6 +251,17 @@ function Aports:git_describe()
 	return result
 end
 
+function Aports:deps_exists(pkg)
+	for name in pkg:each_dependency() do
+		for dep in self:each_pkg_with_name(name) do
+			if dep.pkgname ~= pkg.pkgname and dep:arch_enabled() and not dep:all_apks_exists() then
+				return false
+			end
+		end
+	end
+	return true
+end
+
 function M.new(aportsdir, ...)
 	local h = Aports
 	h.aportsdir = aportsdir
