@@ -18,6 +18,18 @@ local function split_subpkgs(str, linguas, pkgname)
 	return t
 end
 
+local function split_deps(str)
+	local t = {}
+	local e
+	if (str == nil) then
+		return nil
+	end
+	for e in string.gmatch(str, "%S+") do
+		t[#t + 1] = string.gsub(e, "[=<>].*", "")
+	end
+	return t
+end
+
 local function split(str)
 	local t = {}
 	local e
@@ -45,8 +57,8 @@ local function split_apkbuild(line)
 	r.pkgname = pkgname
 	r.pkgver = pkgver
 	r.pkgrel = pkgrel
-	r.depends = split(depends)
-	r.makedepends = split(makedepends)
+	r.depends = split_deps(depends)
+	r.makedepends = split_deps(makedepends)
 	r.linguas = split(linguas)
 	r.subpackages = split_subpkgs(subpackages, r.linguas, pkgname)
 	r.source = split(source)
