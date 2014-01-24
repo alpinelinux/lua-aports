@@ -78,10 +78,6 @@ local function build_aport(aport, repodest, logdir)
 	return pipe:close()
 end
 
-local function build_repo(aportsdir, repodest, logdir, repo, keep_going)
-	return true
-end
-
 local function post_purge(repodest, repo)
 	local keep = {}
 	local lfs = require('lfs')

@@ -99,7 +99,7 @@ function M.apk_file_exists(pkg, name)
 end
 
 function M.arch_enabled(pkg)
-	return pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild_arch]
+	return pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch]
 end
 
 function M.init(pkg)
