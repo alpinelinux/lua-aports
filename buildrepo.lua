@@ -25,7 +25,7 @@ local function parse_opts(opthelp, raw_args)
 	for optc, separator in opthelp:gmatch("%s+%-(%a)(%s+)") do
 		valid_opts[optc] = { hasarg = (separator == " ") }
 	end
-	
+
 	local i = 1
 	while i <= #raw_args do
 		local a = raw_args[i]
@@ -77,25 +77,18 @@ local function build_aport(aport, repodest, logdir, skip_failed)
 	if skip_failed and skip_aport(aport) then
 		return nil
 	end
-	local log
+	local logredirect = ""
 	if logdir ~= nil then
 		local dir = ("%s/%s"):format(logdir, aport.pkgname)
 		if not lfs.attributes(dir) then
 			assert(lfs.mkdir(dir), dir)
 		end
 		local logfile = ("%s/%s-%s-r%s.log"):format(dir, aport.pkgname, aport.pkgver, aport.pkgrel)
-		log = io.open(logfile, "w")
-	else
-		log = io.stdout
+
+		logredirect = ("> '%s' 2>&1"):format(logfile)
 	end
-	local pipe = io.popen(("REPODEST='%s' abuild -r -m 2>&1"):format(repodest))
-	for line in pipe:lines() do
-		log:write(("%s\n"):format(line))
-	end
-	if log ~= io.stdout then
-		log:close()
-	end
-	success = pipe:close()
+	local cmd = ("REPODEST='%s' abuild -r -m %s"):format(repodest, logredirect)
+	success = os.execute(cmd)
 	if not success then
 		err("%s: Failed to build", aport.pkgname)
 	end
