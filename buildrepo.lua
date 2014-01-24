@@ -95,13 +95,6 @@ local function build_aport(aport, repodest, logdir, skip_failed)
 	return success
 end
 
-local function post_purge(repodest, repo)
-	local keep = {}
-	local lfs = require('lfs')
-	
-	
-end
-
 -----------------------------------------------------------------
 local opthelp = [[
  -a DIR     Set the aports base dir to DIR instead of $HOME/aports
@@ -177,15 +170,17 @@ for _,repo in pairs(args) do
 	end
 
 	-- build packages
-	built = 0
-	tried = 0
+	local built = 0
+	local tried = 0
 	for aport in db:each_in_build_order(pkgs) do
 		tried = tried + 1
 		local totally_built = stats[repo].aports - #pkgs + built
 		io.write(("%d/%d %d/%d %s\n"):format(tried, #pkgs,
 					totally_built, stats[repo].aports,
 					aport.pkgname))
-		if build_aport(aport, repodest, logdir, opts.s) then
+		if not db:deps_exists(aport) then
+			warn("%s: Skipped due to missing dependencies", aport.pkgname)
+		elseif build_aport(aport, repodest, logdir, opts.s) then
 			built = built + 1
 		else
 			if not opts.k then
@@ -195,7 +190,7 @@ for _,repo in pairs(args) do
 	end
 
 	-- purge old packages
-	deleted = 0
+	local deleted = 0
 	if opts.p then
 		local keep = {}
 		for aport,name in db:each() do
