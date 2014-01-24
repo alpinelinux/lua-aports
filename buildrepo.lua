@@ -68,7 +68,9 @@ local function build_aport(aport, repodest, logdir, skip_failed)
 	local log
 	if logdir ~= nil then
 		local dir = ("%s/%s"):format(logdir, aport.pkgname)
-		assert(lfs.mkdir(dir), dir)
+		if not lfs.attributes(dir) then
+			assert(lfs.mkdir(dir), dir)
+		end
 		local logfile = ("%s/%s-%s-r%s.log"):format(dir, aport.pkgname, aport.pkgver, aport.pkgrel)
 		log = io.open(logfile, "w")
 	else
@@ -149,7 +151,9 @@ for _,repo in pairs(args) do
 
 	if logdirbase ~= nil then
 		logdir = ("%s/%s"):format(logdirbase, repo)
-		assert(lfs.mkdir(logdir), logdir)
+		if not lfs.attributes(logdir) then
+			assert(lfs.mkdir(logdir), logdir)
+		end
 	end
 
 	-- build packages
