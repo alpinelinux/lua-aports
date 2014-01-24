@@ -55,14 +55,26 @@ local function parse_opts(opthelp, raw_args)
 	return opts, args
 end
 
+local function skip_aport(aport)
+	local dirattr = lfs.attributes(aport.dir.."/src/")
+	local fileattr = lfs.attributes(aport.dir.."/APKBUILD")
+	if not dirattr or not fileattr then
+		return false
+	end
+	if os.difftime(fileattr.modification, dirattr.modification) > 0 then
+		return false
+	end
+	warn("%s: Skipped due to previous build failure", aport.pkgname)
+	return true
+end
+
 local function build_aport(aport, repodest, logdir, skip_failed)
 	local success, errmsg = lfs.chdir(aport.dir)
 	if not success then
 		err("%s", errmsg)
 		return nil
 	end
-	if skip_failed and lfs.attributes(aport.dir.."/src/") then
-		warn("%s: Skipped due to previous build failure", aport.pkgname)
+	if skip_failed and skip_aport(aport) then
 		return nil
 	end
 	local log
