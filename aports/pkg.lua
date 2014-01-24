@@ -3,26 +3,6 @@ local M = {}
 local abuild = require('aports.abuild')
 local lfs = require('lfs')
 
--- return a key list with makedepends and depends
-function M.all_deps(p)
-	local m = {}
-	local k,v
-	if p == nil then
-		return m
-	end
-	if type(p.depends) == "table" then
-		for k,v in pairs(p.depends) do
-			m[v] = true
-		end
-	end
-	if type(p.makedepends) == "table" then
-		for k,v in pairs(p.makedepends) do
-			m[v] = true
-		end
-	end
-	return m
-end
-
 function M.is_remote(url)
 	local _,pref
 	for _,pref in pairs{ "^http://", "^ftp://", "^https://", ".*::.*" } do
@@ -110,15 +90,22 @@ function M.arch_enabled(pkg)
 	return pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch]
 end
 
-function M.init(pkg)
-	pkg.all_deps = M.all_deps
-	pkg.remote_sources = M.remote_sources
-	pkg.get_maintainer = M.get_maintainer
-	pkg.get_repo_name = M.get_repo_name
-	pkg.get_apk_file_name = M.get_apk_file_name
-	pkg.get_apk_file_path = M.get_apk_file_path
-	pkg.apk_file_exists = M.apk_file_exists
-	pkg.all_apks_exists = M.all_apks_exists
-	pkg.arch_enabled = M.arch_enabled
+function M.each_dependency(pkg)
+	return coroutine.wrap(function()
+		for _,dep in pairs(pkg.depends or {}) do
+			coroutine.yield(dep)
+		end
+		for _,dep in pairs(pkg.makedepends or {}) do
+			coroutine.yield(dep)
+		end
+	end)
 end
+
+
+function M.init(pkg)
+	for k,v in pairs(M) do
+		pkg[k] = v
+	end
+end
+
 return M

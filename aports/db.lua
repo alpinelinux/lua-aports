@@ -116,11 +116,11 @@ local function init_apkdb(aportsdir, repos)
 			table.insert(pkgdb[v], a)
 		end
 		-- add to reverse dependencies
-		for v in pairs(a:all_deps()) do
-			if revdeps[v] == nil then
-				revdeps[v] = {}
+		for dep in a:each_dependency() do
+			if revdeps[dep] == nil then
+				revdeps[dep] = {}
 			end
-			table.insert(revdeps[v], a)
+			table.insert(revdeps[dep], a)
 		end
 	end
 	return pkgdb, revdeps
@@ -139,9 +139,8 @@ function Aports:recursive_dependencies(pn)
 			visited[pn] = true
 			local _, p
 			for _, p in pairs(apkdb[pn]) do
-				local d
-				for d in pairs(p:all_deps()) do
-					if recurs(d) then
+				for dep in p:each_dependency() do
+					if recurs(dep) then
 						return true
 					end
 				end
