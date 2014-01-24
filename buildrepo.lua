@@ -150,11 +150,19 @@ if opts.n then
 	build_aport = function() return true end
 end
 
+stats = {}
 for _,repo in pairs(args) do
 	local db = require('aports.db').new(aportsdir, repo)
 	local pkgs = {}
 	local unsorted = {}
 	local logdir = nil
+	stats[repo] = {}
+
+	-- count total aports
+	stats[repo].aports = 0
+	for aport in db:each_aport() do
+		stats[repo].aports = stats[repo].aports + 1
+	end
 
 	-- find out what needs to be built
 	for aport in db:each_need_build() do
@@ -173,11 +181,14 @@ for _,repo in pairs(args) do
 	end
 
 	-- build packages
-	count = 1
+	built = 0
+	tried = 0
 	for aport in db:each_in_build_order(pkgs) do
-		io.write(("%d/%d %s\n"):format(count, #pkgs, aport.pkgname))
+		tried = tried + 1
+		io.write(("%d/%d/%d/%d %s\n"):format(built, tried, #pkgs,
+					stats[repo].aports, aport.pkgname))
 		if build_aport(aport, repodest, logdir, opts.s) then
-			count = count + 1
+			built = built + 1
 		else
 			if not opts.k then
 				os.exit(1)
@@ -186,6 +197,7 @@ for _,repo in pairs(args) do
 	end
 
 	-- purge old packages
+	deleted = 0
 	if opts.p then
 		local keep = {}
 		for aport,name in db:each() do
@@ -197,6 +209,7 @@ for _,repo in pairs(args) do
 				print("Deleting ", file)
 				if not opts.n then
 					os.remove(("%s/%s"):format(apkrepodir, file))
+					deleted = deleted + 1
 				end
 			end
 		
@@ -209,6 +222,14 @@ for _,repo in pairs(args) do
 		apkrepo.update_index(("%s/%s"):format(repodest, repo),
 				abuild.arch, db:git_describe())
 	end
+	stats[repo].built = built
+	stats[repo].tried = tried
+	stats[repo].deleted = deleted
 end
 
-
+for repo,stat in pairs(stats) do
+	print(repo.." aports:", stat.aports)
+	print(repo.." built:", stat.built)
+	print(repo.." tried:", stat.tried)
+	print(repo.." deleted:", stat.deleted)
+end
