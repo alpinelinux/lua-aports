@@ -1,6 +1,7 @@
 
 local M = {}
 local abuild = require('aports.abuild')
+local lfs = require('lfs')
 
 -- return a key list with makedepends and depends
 function M.all_deps(p)
@@ -90,12 +91,7 @@ end
 function M.apk_file_exists(pkg, name)
 	-- technically we check if it is readable...
 	local filepath = M.get_apk_file_path(pkg, name)
-	local f = io.open(filepath)
-	if f == nil then
-		return false
-	end
-	f:close()
-	return true
+	return lfs.attributes(filepath) ~= nil
 end
 
 function M.arch_enabled(pkg)
