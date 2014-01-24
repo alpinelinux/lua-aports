@@ -55,8 +55,14 @@ local function parse_opts(opthelp, raw_args)
 	return opts, args
 end
 
-local function build_aport(aport, repodest, logdir)
-	if not lfs.chdir(aport.dir) then
+local function build_aport(aport, repodest, logdir, skip_failed)
+	local success, errmsg = lfs.chdir(aport.dir)
+	if not success then
+		err("%s", errmsg)
+		return nil
+	end
+	if skip_failed and lfs.attributes(aport.dir.."/src/") then
+		warn("%s: Skipped due to previous build failure", aport.pkgname)
 		return nil
 	end
 	local log
@@ -95,6 +101,7 @@ local opthelp = [[
  -n         Dry run. Don't acutally build or delete, just print
  -p         Purge obsolete packages from REPODIR after build
  -r REPO    Dependencies are found in REPO
+ -s         Skip those who previously failed (src dir exists)
 ]]
 
 local function usage(exitcode)
@@ -149,7 +156,7 @@ for _,repo in pairs(args) do
 	count = 1
 	for aport in db:each_in_build_order(pkgs) do
 		io.write(("%d/%d %s\n"):format(count, #pkgs, aport.pkgname))
-		if build_aport(aport, repodest, logdir) then
+		if build_aport(aport, repodest, logdir, opts.s) then
 			count = count + 1
 		else
 			err("failed to build %s", aport.pkgname)
