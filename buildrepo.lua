@@ -83,7 +83,11 @@ local function build_aport(aport, repodest, logdir, skip_failed)
 	if log ~= io.stdout then
 		log:close()
 	end
-	return pipe:close()
+	success = pipe:close()
+	if not success then
+		err("%s: Failed to build", aport.pkgname)
+	end
+	return success
 end
 
 local function post_purge(repodest, repo)
@@ -163,7 +167,6 @@ for _,repo in pairs(args) do
 		if build_aport(aport, repodest, logdir, opts.s) then
 			count = count + 1
 		else
-			err("failed to build %s", aport.pkgname)
 			if not opts.k then
 				os.exit(1)
 			end
