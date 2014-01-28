@@ -95,7 +95,7 @@ function M.libc_enabled(pkg)
 	return not pkg.options["!libc_"..libc]
 end
 
-function M.enabled(pkg)
+function M.relevant(pkg)
 	return pkg:arch_enabled() and pkg:libc_enabled()
 end
 
