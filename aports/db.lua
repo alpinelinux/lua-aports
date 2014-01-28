@@ -235,7 +235,7 @@ end
 function Aports:each_need_build()
 	return coroutine.wrap(function()
 		for aport in self:each_aport() do
-			if aport:arch_enabled() and not aport:all_apks_exists() then
+			if aport:enabled() and not aport:all_apks_exists() then
 				coroutine.yield(aport)
 			end
 		end
@@ -279,7 +279,7 @@ end
 function Aports:known_deps_exists(pkg)
 	for name in self:each_known_dependency(pkg) do
 		for dep in self:each_pkg_with_name(name) do
-			if dep.pkgname ~= pkg.pkgname and dep:arch_enabled() and not dep:all_apks_exists() then
+			if dep.pkgname ~= pkg.pkgname and dep:enabled() and not dep:all_apks_exists() then
 				return false
 			end
 		end
