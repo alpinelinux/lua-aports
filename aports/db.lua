@@ -42,17 +42,17 @@ local function split(str)
 	return t
 end
 
-local function split_arch(archstr)
+local function split_key(str)
 	local t = {}
-	for _,arch in pairs(split(archstr)) do
-		t[arch] = true
+	for _,key in pairs(split(str)) do
+		t[key] = true
 	end
 	return t
 end
 
 local function split_apkbuild(line)
 	local r = {}
-	local dir,pkgname, pkgver, pkgrel, arch, depends, makedepends, subpackages, linguas, source, url = string.match(line, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)")
+	local dir,pkgname, pkgver, pkgrel, arch, options, depends, makedepends, subpackages, linguas, source, url = string.match(line, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)")
 	r.dir = dir
 	r.pkgname = pkgname
 	r.pkgver = pkgver
@@ -63,7 +63,8 @@ local function split_apkbuild(line)
 	r.subpackages = split_subpkgs(subpackages, r.linguas, pkgname)
 	r.source = split(source)
 	r.url = url
-	r.arch = split_arch(arch)
+	r.arch = split_key(arch)
+	r.options = split_key(options)
 	return r
 end
 
@@ -85,6 +86,7 @@ local function parse_apkbuilds(aportsdir, repos)
 			pkgver=
 			pkgrel=
 			arch=
+			options=
 			depends=
 			makedepends=
 			subpackages=
@@ -95,7 +97,7 @@ local function parse_apkbuilds(aportsdir, repos)
 			[ -n "$dir" ] || exit 1;
 			cd "$dir";
 			. ./APKBUILD;
-			echo $dir\|$pkgname\|$pkgver\|$pkgrel\|$arch\|$depends\|$makedepends\|$subpackages\|$linguas\|$source\|$url ;
+			echo $dir\|$pkgname\|$pkgver\|$pkgrel\|$arch\|$options\|$depends\|$makedepends\|$subpackages\|$linguas\|$source\|$url ;
 		done;
 	]])
 	return function()
