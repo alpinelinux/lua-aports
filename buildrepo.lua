@@ -146,12 +146,16 @@ for _,repo in pairs(args) do
 	local start_time = os.clock()
 
 	-- count total aports
-	stats[repo].aports = 0
+	relevant_aports = 0
+	total_aports = 0
 	for aport in db:each_aport() do
-		if aport:arch_enabled() then
-			stats[repo].aports = stats[repo].aports + 1
+		total_aports = total_aports + 1
+		if aport:relevant() then
+			relevant_aports = relevant_aports + 1
 		end
 	end
+	stats[repo].relevant_aports = relevant_aports
+	stats[repo].total_aports = total_aports
 
 	-- find out what needs to be built
 	for aport in db:each_need_build() do
@@ -174,9 +178,9 @@ for _,repo in pairs(args) do
 	local tried = 0
 	for aport in db:each_in_build_order(pkgs) do
 		tried = tried + 1
-		local totally_built = stats[repo].aports - #pkgs + built
+		local totally_built = stats[repo].relevant_aports - #pkgs + built
 		io.write(("%d/%d %d/%d %s\n"):format(tried, #pkgs,
-					totally_built, stats[repo].aports,
+					totally_built, stats[repo].relevant_aports,
 					aport.pkgname))
 		if not db:known_deps_exists(aport) then
 			warn("%s: Skipped due to missing dependencies", aport.pkgname)
@@ -226,6 +230,7 @@ for repo,stat in pairs(stats) do
 	print(repo.." tried:", stat.tried)
 	print(repo.." deleted:", stat.deleted)
 	print(repo.." time:", stat.time)
-	print(repo.." total built:", stat.aports - stat.tried + stat.built)
-	print(repo.." total aports:", stat.aports)
+	print(repo.." total built:", stat.relevant_aports - stat.tried + stat.built)
+	print(repo.." total relevant aports:", stat.relevant_aports)
+	print(repo.." total aports:", stat.total_aports)
 end
