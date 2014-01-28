@@ -90,6 +90,15 @@ function M.arch_enabled(pkg)
 	return pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch]
 end
 
+function M.libc_enabled(pkg)
+	local libc = abuild.chost:match("-([%a]+)$")
+	return not pkg.options["!libc_"..libc]
+end
+
+function M.enabled(pkg)
+	return pkg:arch_enabled() and pkg:libc_enabled()
+end
+
 function M.each_dependency(pkg)
 	return coroutine.wrap(function()
 		for _,dep in pairs(pkg.depends or {}) do
