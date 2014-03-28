@@ -179,9 +179,9 @@ for _,repo in pairs(args) do
 	for aport in db:each_in_build_order(pkgs) do
 		tried = tried + 1
 		local totally_built = stats[repo].relevant_aports - #pkgs + built
-		io.write(("%d/%d %d/%d %s\n"):format(tried, #pkgs,
+		io.write(("%d/%d %d/%d %s %s\n"):format(tried, #pkgs,
 					totally_built, stats[repo].relevant_aports,
-					aport.pkgname))
+					aport.pkgname, aport.pkgver))
 		if not db:known_deps_exists(aport) then
 			warn("%s: Skipped due to missing dependencies", aport.pkgname)
 		elseif build_aport(aport, repodest, logdir, opts.s) then
