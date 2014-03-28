@@ -209,7 +209,6 @@ for _,repo in pairs(args) do
 					deleted = deleted + 1
 				end
 			end
-		
 		end
 	end
 
