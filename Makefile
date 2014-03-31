@@ -12,7 +12,7 @@ aportsfiles= \
 	db.lua \
 	pkg.lua
 
-binfiles=buildrepo.lua
+binfiles=buildrepo.lua ap.lua
 
 all:
 	@echo "To install run:"
