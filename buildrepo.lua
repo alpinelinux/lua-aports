@@ -68,7 +68,7 @@ local function skip_aport(aport)
 	return true
 end
 
-local function build_aport(aport, repodest, logdir, skip_failed)
+local function build_aport(aport, repodest, logdir)
 	local success, errmsg = lfs.chdir(aport.dir)
 	if not success then
 		err("%s", errmsg)
@@ -178,12 +178,12 @@ for _,repo in pairs(args) do
 		local totally_built = stats[repo].relevant_aports - #pkgs + built
 		if not db:known_deps_exists(aport) then
 			warn("%s: Skipped due to missing dependencies", aport.pkgname)
-		elseif not (skip_failed and skip_aport(aport)) then
+		elseif not (opts.s and skip_aport(aport)) then
 			io.write(("%d/%d %d/%d %s %s\n"):format(tried, #pkgs,
 					totally_built,
 					stats[repo].relevant_aports,
 					aport.pkgname, aport.pkgver))
-			if build_aport(aport, repodest, logdir, opts.s) then
+			if build_aport(aport, repodest, logdir) then
 				built = built + 1
 			else
 				if not opts.k then
