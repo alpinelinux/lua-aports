@@ -74,9 +74,6 @@ local function build_aport(aport, repodest, logdir, skip_failed)
 		err("%s", errmsg)
 		return nil
 	end
-	if skip_failed and skip_aport(aport) then
-		return nil
-	end
 	local logredirect = ""
 	if logdir ~= nil then
 		local dir = ("%s/%s"):format(logdir, aport.pkgname)
@@ -181,7 +178,7 @@ for _,repo in pairs(args) do
 		local totally_built = stats[repo].relevant_aports - #pkgs + built
 		if not db:known_deps_exists(aport) then
 			warn("%s: Skipped due to missing dependencies", aport.pkgname)
-		else
+		elseif not (skip_failed and skip_aport(aport)) then
 			io.write(("%d/%d %d/%d %s %s\n"):format(tried, #pkgs,
 					totally_built,
 					stats[repo].relevant_aports,
