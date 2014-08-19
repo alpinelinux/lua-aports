@@ -51,6 +51,9 @@ local function split_key(str)
 end
 
 local function split_apkbuild(line)
+	if line == nil then
+		return nil
+	end
 	local r = {}
 	local dir,pkgname, pkgver, pkgrel, arch, options, depends, makedepends, subpackages, linguas, source, url = string.match(line, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)")
 	r.dir = dir
@@ -69,7 +72,7 @@ local function split_apkbuild(line)
 end
 
 -- parse the APKBUILDs and return an iterator
-local function parse_apkbuilds(aportsdir, repos)
+local function apkbuilds_open(aportsdir, repos)
 	local i,v, p
 	local str=""
 	if repos == nil then
@@ -80,7 +83,8 @@ local function parse_apkbuilds(aportsdir, repos)
 		str = ("%s %s/%s/*/APKBUILD"):format(str, aportsdir, repo)
 	end
 
-	local p = io.popen(". "..abuild.functions..";"..[[
+	local obj = {}
+	obj.handle = io.popen(". "..abuild.functions..";"..[[
 		for i in ]]..str..[[; do
 			pkgname=
 			pkgver=
@@ -100,21 +104,23 @@ local function parse_apkbuilds(aportsdir, repos)
 			echo $dir\|$pkgname\|$pkgver\|$pkgrel\|$arch\|$options\|$depends\|$makedepends\|$subpackages\|$linguas\|$source\|$url ;
 		done;
 	]])
-	return function()
-		local line = p:read("*line")
-		if line == nil then
-			p:close()
-			return nil
+	obj.read = function(self)
+		return function()
+			return split_apkbuild(self.handle:read("*line"))
 		end
-		return split_apkbuild(line)
+
 	end
+	obj.close = function(self)
+		return self.handle:close()
+	end
+	return obj
 end
 
 local function init_apkdb(aportsdir, repos)
 	local pkgdb = {}
 	local revdeps = {}
-	local a
-	for a in parse_apkbuilds(aportsdir, repos) do
+	local apkbuilds = apkbuilds_open(aportsdir, repos)
+	for a in apkbuilds:read() do
 	--	io.write(a.pkgname.." "..a.pkgver.."\t"..a.dir.."\n")
 		if pkgdb[a.pkgname] == nil then
 			pkgdb[a.pkgname] = {}
@@ -136,6 +142,9 @@ local function init_apkdb(aportsdir, repos)
 			end
 			table.insert(revdeps[dep], a)
 		end
+	end
+	if not apkbuilds:close() then
+		return nil
 	end
 	return pkgdb, revdeps
 end
@@ -292,6 +301,9 @@ function M.new(aportsdir, ...)
 	h.aportsdir = aportsdir
 	h.repos = {...}
 	h.apks, h.revdeps = init_apkdb(aportsdir, h.repos)
+	if h.apks == nil then
+		return nil, h.revdeps
+	end
 	return h
 end
 
