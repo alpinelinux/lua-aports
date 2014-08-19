@@ -149,6 +149,11 @@ for _,repo in pairs(args) do
 	stats[repo] = {}
 	local start_time = os.clock()
 
+	if db == nil then
+		err("%s/%s: Failed to open apkbuilds", aportsdir, repo)
+		os.exit(1)
+	end
+
 	-- count total aports
 	relevant_aports = 0
 	total_aports = 0
