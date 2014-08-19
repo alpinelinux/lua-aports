@@ -91,8 +91,7 @@ function M.arch_enabled(pkg)
 end
 
 function M.libc_enabled(pkg)
-	local libc = abuild.chost:match("-([%a]+)$")
-	return not pkg.options["!libc_"..libc]
+	return not pkg.options["!libc_"..abuild.libc]
 end
 
 function M.relevant(pkg)
