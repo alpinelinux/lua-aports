@@ -3,6 +3,7 @@
 local abuild = require("aports.abuild")
 local apkrepo = require("aports.apkrepo")
 local lfs = require("lfs")
+local optarg = require("optarg")
 
 local pluginsdir = "/etc/buildrepo/plugins.d"
 
@@ -24,44 +25,6 @@ end
 local function info(formatstr, ...)
 	io.stdout:write(("%s\n"):format(formatstr:format(...)))
 	io.stdout:flush()
-end
-
-local function parse_opts(opthelp, raw_args)
-	local valid_opts = {}
-	local opts = {}
-	local args = {}
-	local moreopts = true
-	for optc, separator in opthelp:gmatch("%s+%-(%a)(%s+)") do
-		valid_opts[optc] = { hasarg = (separator == " ") }
-	end
-
-	local i = 1
-	while i <= #raw_args do
-		local a = raw_args[i]
-		i = i + 1
-		if a == "--" then
-			moreopts = false
-		elseif moreopts and a:sub(1,1) == "-" then
-			for j = 2, #a do
-				local opt = a:sub(j,j)
-				if not valid_opts[opt] then
-					return nil, opt, "invalid option"
-				end
-				if valid_opts[opt].hasarg then
-					opts[opt] = raw_args[i]
-					i = i + 1
-				else
-					opts[opt] = true
-				end
-				if not opts[opt] then
-					return nil, opt, "optarg required"
-				end
-			end
-		else
-			args[#args + 1] = a
-		end
-	end
-	return opts, args
 end
 
 local function skip_aport(aport)
@@ -159,22 +122,19 @@ local opthelp = [[
 ]]
 
 local function usage(exitcode)
-	io.stdout:write(("options:\n%s\n"):format(opthelp))
+	io.stdout:write((
+"Usage: %s [-hknps] [-a DIR] [-d DIR] [-l DIR] [-r REPO] REPO...\n"..
+"Options:\n%s\n"):format(_G.arg[0], opthelp))
 	os.exit(exitcode)
 end
 
-opts, args, errmsg = parse_opts(opthelp, arg)
-if opts == nil then
-	io.stderr:write(("%s: -%s\n"):format(errmsg, args))
+opts, args = optarg.from_opthelp(opthelp)
+if opts == nil or #args == 0 then
 	usage(1)
 end
 
 if opts.h then
 	usage(0)
-end
-
-if #args == 0 then
-	usage(1)
 end
 
 homedir = os.getenv("HOME")
