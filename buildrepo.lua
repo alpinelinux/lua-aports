@@ -110,15 +110,16 @@ local function log_progress(progress, repo, aport)
 end
 -----------------------------------------------------------------
 local opthelp = [[
- -a DIR     Set the aports base dir to DIR instead of $HOME/aports
- -d DIR     Set destination repository base to DIR instead of $HOME/packages
- -h	    Show this help and exit
- -l DIR     Create build logs in DIR/REPO/pkgname/ instead of stdout
- -k         Keep going, even if packages fails
- -n         Dry run. Don't acutally build or delete, just print
- -p         Purge obsolete packages from REPODIR after build
- -r REPO    Dependencies are found in REPO
- -s         Skip those who previously failed (src dir exists)
+ -a, --aports=DIR      Set the aports base dir to DIR instead of $HOME/aports
+ -d, --destdir=DIR     Set destination repository base to DIR instead of
+                       $HOME/packages
+ -h, --help            Show this help and exit
+ -l, --logdir=DIR      Create build logs in DIR/REPO/pkgname/ instead of stdout
+ -k, --keep-going      Keep going, even if packages fails
+ -n, --dry-run         Dry run. Don't acutally build or delete, just print
+ -p, --purge           Purge obsolete packages from REPODIR after build
+ -r, --deps-repo=REPO  Dependencies are found in REPO
+ -s, --skip-failed     Skip those who previously failed (src dir exists)
 ]]
 
 local function usage(exitcode)
