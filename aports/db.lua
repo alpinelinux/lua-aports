@@ -157,7 +157,7 @@ function Aports:recursive_dependencies(pn)
 	return coroutine.wrap(function()
 		function recurs(pn)
 			if pn == nil or visited[pn] or apkdb[pn] == nil then
-				return false
+				return nil
 			end
 			visited[pn] = true
 			local _, p
@@ -289,7 +289,7 @@ function Aports:known_deps_exists(pkg)
 	for name in self:each_known_dependency(pkg) do
 		for dep in self:each_pkg_with_name(name) do
 			if dep.pkgname ~= pkg.pkgname and dep:relevant() and not dep:all_apks_exists() then
-				return false
+				return nil
 			end
 		end
 	end
