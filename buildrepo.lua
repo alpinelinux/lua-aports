@@ -4,6 +4,8 @@ local abuild = require("aports.abuild")
 local apkrepo = require("aports.apkrepo")
 local lfs = require("lfs")
 
+local pluginsdir = "/etc/buildrepo/plugins.d"
+
 local function warn(formatstr, ...)
 	io.stderr:write(("WARNING: %s\n"):format(formatstr:format(...)))
 	io.stderr:flush()
@@ -75,6 +77,26 @@ local function skip_aport(aport)
 	return true
 end
 
+local function run_plugins(dirpath, func, ...)
+	local a = lfs.attributes(dirpath)
+	if a == nil or a.mode ~= "directory" then
+		return
+	end
+	local flist = {}
+	for f in lfs.dir(dirpath) do
+		if string.match(f, ".lua$") then
+			table.insert(flist, f)
+		end
+	end
+	table.sort(flist)
+	for i = 1,#flist do
+		local m = dofile(dirpath.."/"..flist[i])
+		if type(m[func]) == "function" then
+			m[func](...)
+		end
+	end
+end
+
 local function build_aport(aport, repodest, logdir)
 	local success, errmsg = lfs.chdir(aport.dir)
 	if not success then
@@ -92,10 +114,16 @@ local function build_aport(aport, repodest, logdir)
 		logredirect = ("> '%s' 2>&1"):format(logfile)
 	end
 	local cmd = ("REPODEST='%s' abuild -r -m %s"):format(repodest, logredirect)
-	success = os.execute(cmd)
+	run_plugins(pluginsdir, "prebuild", aport, logfile)
+	if opts.n then
+		success = true
+	else
+		success = os.execute(cmd)
+	end
 	if not success then
 		err("%s: Failed to build", aport.pkgname)
 	end
+	run_plugins(pluginsdir, "postbuild", aport, success, logfile)
 	return success
 end
 
@@ -135,10 +163,6 @@ homedir = os.getenv("HOME")
 aportsdir = opts.a or ("%s/aports"):format(homedir)
 repodest = opts.d or abuild.repodest or ("%s/packages"):format(homedir)
 logdirbase = opts.l
-
-if opts.n then
-	build_aport = function() return true end
-end
 
 stats = {}
 for _,repo in pairs(args) do
