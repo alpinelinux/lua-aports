@@ -196,9 +196,9 @@ for _,repo in pairs(args) do
 			warn("%s: Skipped due to missing dependencies", aport.pkgname)
 		elseif not (opts.s and skip_aport(aport)) then
 			log_progress(progress, repo, aport)
-			plugins_prebuild(aport, progress, logfile)
+			plugins_prebuild(aport, progress, repodest, abuild.arch, logfile)
 			local success = build_aport(aport, repodest, logfile)
-			plugins_postbuild(aport, success, logfile)
+			plugins_postbuild(aport, success, repodest, abuild.arch, logfile)
 			if success then
 				built = built + 1
 			end
