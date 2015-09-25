@@ -228,7 +228,7 @@ for _,repo in pairs(args) do
 	end
 
 	-- generate new apkindex
-	if not opts.n then
+	if not opts.n and built > 0 then
 		info("Updating apk index")
 		apkrepo.update_index(("%s/%s"):format(repodest, repo),
 				abuild.arch, db:git_describe())
