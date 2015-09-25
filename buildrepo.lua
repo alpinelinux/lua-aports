@@ -68,6 +68,14 @@ local function plugins_postbuild(...)
 	return run_plugins(pluginsdir, "postbuild", ...)
 end
 
+local function plugins_prerepo(...)
+	return run_plugins(pluginsdir, "prerepo", ...)
+end
+
+local function plugins_postrepo(...)
+	return run_plugins(pluginsdir, "postrepo", ...)
+end
+
 local function logfile_path(logdirbase, repo, aport)
 	if logdirbase == nil then
 		return nil
@@ -173,6 +181,9 @@ for _,repo in pairs(args) do
 	stats[repo].relevant_aports = relevant_aports
 	stats[repo].total_aports = total_aports
 
+	-- run prerepo hooks
+	plugins_prerepo(repo, aportsdir, repodest, abuild.arch, stats[repo])
+
 	-- find out what needs to be built
 	for aport in db:each_need_build() do
 		table.insert(pkgs, aport.pkgname)
@@ -237,6 +248,9 @@ for _,repo in pairs(args) do
 	stats[repo].tried = tried
 	stats[repo].deleted = deleted
 	stats[repo].time = os.clock() - start_time
+
+	-- run portrepo hooks
+	plugins_postrepo(repo, aportsdir, repodest, abuild.arch, stats[repo])
 end
 
 for repo,stat in pairs(stats) do
