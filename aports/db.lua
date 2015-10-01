@@ -55,7 +55,7 @@ local function split_apkbuild(line)
 		return nil
 	end
 	local r = {}
-	local dir,pkgname, pkgver, pkgrel, arch, options, depends, makedepends, subpackages, linguas, source, url = string.match(line, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)")
+	local dir,pkgname, pkgver, pkgrel, arch, options, depends, makedepends, subpackages, linguas, source, url = string.match(line, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)")
 	r.dir = dir
 	r.pkgname = pkgname
 	r.pkgver = pkgver
