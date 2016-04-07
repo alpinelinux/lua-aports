@@ -116,7 +116,7 @@ local function apkbuilds_open(aportsdir, repos)
 	return obj
 end
 
-local function init_apkdb(aportsdir, repos)
+local function init_apkdb(aportsdir, repos, repodest)
 	local pkgdb = {}
 	local revdeps = {}
 	local apkbuilds = apkbuilds_open(aportsdir, repos)
@@ -125,7 +125,7 @@ local function init_apkdb(aportsdir, repos)
 		if pkgdb[a.pkgname] == nil then
 			pkgdb[a.pkgname] = {}
 		end
-		pkg.init(a)
+		pkg.init(a, repodest)
 		table.insert(pkgdb[a.pkgname], a)
 		-- add subpackages to package db
 		local k,v
@@ -296,11 +296,15 @@ function Aports:known_deps_exists(pkg)
 	return true
 end
 
-function M.new(aportsdir, ...)
+function M.new(aportsdir, repos, repodest)
 	local h = Aports
 	h.aportsdir = aportsdir
-	h.repos = {...}
-	h.apks, h.revdeps = init_apkdb(aportsdir, h.repos)
+	if type(repos) == "table" then
+		h.repos = repos
+	else
+		h.repos = { repos }
+	end
+	h.apks, h.revdeps = init_apkdb(aportsdir, h.repos, repodest)
 	if h.apks == nil then
 		return nil, h.revdeps
 	end

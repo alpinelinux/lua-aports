@@ -157,7 +157,7 @@ end
 
 stats = {}
 for _,repo in pairs(args) do
-	local db = require('aports.db').new(aportsdir, repo)
+	local db = require('aports.db').new(aportsdir, repo, repodest)
 	local pkgs = {}
 	local unsorted = {}
 	local logdir = nil

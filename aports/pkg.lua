@@ -59,11 +59,12 @@ function M.get_apk_file_name(pkg, name)
 end
 
 function M.get_apk_file_path(pkg, name)
-	if abuild.pkgdest ~= nil and abuild.pkgdest ~= "" then
+	local repodest = pkg.repodest or abuild.repodest
+	if pkg.repodest == nil and abuild.pkgdest ~= nil and abuild.pkgdest ~= "" then
 		return abuild.pkgdest.."/"..M.get_apk_file_name(pkg, name)
 	end
-	if abuild.repodest ~= nil and abuild.repodest ~= "" then
-		return abuild.repodest.."/"..M.get_repo_name(pkg).."/"..abuild.arch.."/"..M.get_apk_file_name(pkg, name)
+	if repodest ~= nil and repodest ~= "" then
+		return repodest.."/"..M.get_repo_name(pkg).."/"..abuild.arch.."/"..M.get_apk_file_name(pkg, name)
 	end
 	return pkg.dir.."/"..M.get_apk_file_name(pkg, name)
 end
@@ -71,6 +72,9 @@ end
 function M.apk_file_exists(pkg, name)
 	-- technically we check if it is readable...
 	local filepath = M.get_apk_file_path(pkg, name)
+        if lfs.attributes(filepath) == nil then
+		io.stderr:write(("DEBUG: path=%s\n"):format(filepath))
+	end
 	return lfs.attributes(filepath) ~= nil
 end
 
@@ -110,10 +114,11 @@ function M.each_dependency(pkg)
 end
 
 
-function M.init(pkg)
+function M.init(pkg, repodest)
 	for k,v in pairs(M) do
 		pkg[k] = v
 	end
+	pkg.repodest = repodest
 end
 
 return M
