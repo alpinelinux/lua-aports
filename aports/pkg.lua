@@ -91,7 +91,7 @@ function M.all_apks_exists(pkg)
 end
 
 function M.arch_enabled(pkg)
-	return pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch]
+	return not pkg.arch["!"..abuild.arch] and (pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch])
 end
 
 function M.libc_enabled(pkg)
