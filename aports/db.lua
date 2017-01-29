@@ -55,13 +55,14 @@ local function split_apkbuild(line)
 		return nil
 	end
 	local r = {}
-	local dir,pkgname, pkgver, pkgrel, arch, options, depends, makedepends, subpackages, linguas, source, url = string.match(line, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)")
+	local dir,pkgname, pkgver, pkgrel, arch, options, depends, makedepends, checkdepends, subpackages, linguas, source, url = string.match(line, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)")
 	r.dir = dir
 	r.pkgname = pkgname
 	r.pkgver = pkgver
 	r.pkgrel = pkgrel
 	r.depends = split_deps(depends)
 	r.makedepends = split_deps(makedepends)
+	r.checkdepends = split_deps(checkdepends)
 	r.linguas = split(linguas)
 	r.subpackages = split_subpkgs(subpackages, r.linguas, pkgname)
 	r.source = split(source)
@@ -93,6 +94,7 @@ local function apkbuilds_open(aportsdir, repos)
 			options=
 			depends=
 			makedepends=
+			checkdepends=
 			subpackages=
 			linguas=
 			source=
@@ -101,7 +103,7 @@ local function apkbuilds_open(aportsdir, repos)
 			[ -n "$dir" ] || exit 1;
 			cd "$dir";
 			. ./APKBUILD;
-			echo $dir\|$pkgname\|$pkgver\|$pkgrel\|$arch\|$options\|$depends\|$makedepends\|$subpackages\|$linguas\|$source\|$url ;
+			echo $dir\|$pkgname\|$pkgver\|$pkgrel\|$arch\|$options\|$depends\|$makedepends\|$checkdepends\|$subpackages\|$linguas\|$source\|$url ;
 		done;
 	]])
 	obj.read = function(self)
