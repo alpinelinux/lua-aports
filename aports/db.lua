@@ -57,7 +57,7 @@ local function split_apkbuild(line)
 	local r = {}
 	local dir, pkgname, pkgver, pkgrel, arch, license, options, depends,
 		makedepends, checkdepends, subpackages, linguas, source, url =
-		string.match(line, string.rep("([^|]*)", 14, "|"))
+		string.match(line, string.rep("([^\\]*)", 14, "\\"))
 	r.dir = dir
 	r.pkgname = pkgname
 	r.pkgver = pkgver
@@ -107,7 +107,7 @@ local function apkbuilds_open(aportsdir, repos)
 			[ -n "$dir" ] || exit 1;
 			cd "$dir";
 			. ./APKBUILD;
-			echo $dir\|$pkgname\|$pkgver\|$pkgrel\|$arch\|$license\|$options\|$depends\|$makedepends\|$checkdepends\|$subpackages\|$linguas\|$source\|$url ;
+			echo $dir\\$pkgname\\$pkgver\\$pkgrel\\$arch\\$license\\$options\\$depends\\$makedepends\\$checkdepends\\$subpackages\\$linguas\\$source\\$url ;
 		done;
 	]])
 	obj.read = function(self)
