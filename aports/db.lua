@@ -54,26 +54,26 @@ local function split_apkbuild(line)
 	if line == nil then
 		return nil
 	end
-	local r = {}
 	local dir, pkgname, pkgver, pkgrel, pkgdesc, arch, license, options, depends,
 		makedepends, checkdepends, subpackages, linguas, source, url =
 		string.match(line, string.rep("([^\\]*)", 14, "\\"))
-	r.dir = dir
-	r.pkgname = pkgname
-	r.pkgver = pkgver
-	r.pkgrel = pkgrel
-	r.pkgdesc = pkgdesc
-	r.license = license
-	r.depends = split_deps(depends)
-	r.makedepends = split_deps(makedepends)
-	r.checkdepends = split_deps(checkdepends)
-	r.linguas = split(linguas)
-	r.subpackages = split_subpkgs(subpackages, r.linguas, pkgname)
-	r.source = split(source)
-	r.url = url
-	r.arch = split_key(arch)
-	r.options = split_key(options)
-	return r
+	return {
+		dir = dir,
+		pkgname = pkgname,
+		pkgver = pkgver,
+		pkgrel = pkgrel,
+		pkgdesc = pkgdesc,
+		license = license,
+		depends = split_deps(depends),
+		makedepends = split_deps(makedepends),
+		checkdepends = split_deps(checkdepends),
+		linguas = split(linguas),
+		subpackages = split_subpkgs(subpackages, r.linguas, pkgname),
+		source = split(source),
+		url = url,
+		arch = split_key(arch),
+		options = split_key(options)
+	}
 end
 
 -- parse the APKBUILDs and return an iterator
