@@ -1,4 +1,4 @@
-#!/usr/bin/lua5.2
+#!/usr/bin/env lua
 
 local lfs = require('lfs')
 
@@ -100,6 +100,14 @@ subcmd["apk-list"] = {
 				print(pkg:get_apk_file_name())
 			end
 		end
+	end
+}
+
+subcmd["dump-json"] = {
+	desc = "Dump all abuilds from aports tree to JSON",
+	run = function()
+		local dump = require "aports.dump"
+		print(dump.pkgs_to_json(db:each_aport()))
 	end
 }
 
