@@ -1,6 +1,6 @@
 #!/usr/bin/lua5.2
 
-lfs = require('lfs')
+local lfs = require('lfs')
 
 local function build_is_outdated(pkg)
 	local apk_attr = lfs.attributes(aports.get_apk_file_path(pkg))
