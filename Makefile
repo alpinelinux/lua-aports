@@ -10,6 +10,7 @@ aportsfiles= \
 	abuild.lua \
 	apkrepo.lua \
 	db.lua \
+	dump.lua \
 	pkg.lua
 
 binfiles=buildrepo.lua ap.lua
