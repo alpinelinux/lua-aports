@@ -1,5 +1,5 @@
 
-VERSION=0.6.0
+VERSION=0.6.1
 LUA_VERSION=5.2
 prefix?=/usr
 sharedir?=$(prefix)/share
