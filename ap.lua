@@ -142,7 +142,7 @@ end
 
 cmd = table.remove(opts, 1)
 
-if cmd == nil then
+if help or cmd == nil then
 	print_usage()
 	-- usage
 	return
