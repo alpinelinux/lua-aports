@@ -16,11 +16,12 @@ local function build_is_missing(pkg)
 end
 
 -- subcommands -----------------------
-subcmd = {}
+local subcmd = {}
+
 subcmd.revdep = {
 	desc = "Print reverse dependencies",
 	usage = "PKG...",
-	run = function(opts)
+	run = function(db, opts)
 		local i
 		for i = 1, #opts do
 			for _,pkg in db:each_reverse_dependency(opts[i]) do
@@ -33,7 +34,7 @@ subcmd.revdep = {
 subcmd.list = {
 	desc = "Print all packages built from aports tree",
 	usage = "",
-	run = function()
+	run = function(db)
 		for _,pn in db:each() do
 			print(pn)
 		end
@@ -43,7 +44,7 @@ subcmd.list = {
 subcmd.recursdeps = {
 	desc = "Recursively print all make dependencies for given packages",
 	usage = "PKG...",
-	run = function (opts)
+	run = function (db, opts)
 		for i = 1, #opts do
 			for dep in db:recursive_dependencies(opts[i]) do
 				print(dep)
@@ -55,7 +56,7 @@ subcmd.recursdeps = {
 subcmd.builddirs = {
 	desc = "Print the build dirs for given packages in build order",
 	usage = "PKG...",
-	run = function(opts)
+	run = function(db, opts)
 		for pkg in db:each_in_build_order(opts) do
 			print(pkg.dir)
 		end
@@ -65,7 +66,7 @@ subcmd.builddirs = {
 subcmd.sources = {
 	desc = "List sources",
 	usage = "PKG...",
-	run = function(opts)
+	run = function(db, opts)
 		local i, p, _
 		for i = 1, #opts do
 			for pkg in db:each_pkg_with_name(opts[i]) do
@@ -80,7 +81,7 @@ subcmd.sources = {
 subcmd["build-list"] = {
 	desc = "List packages that can/should be rebuilt",
 	usage = "",
-	run = function()
+	run = function(db)
 		local nlist = {}
 		for pkg in db:each_need_build() do
 			table.insert(nlist, pkg.pkgname)
@@ -94,7 +95,7 @@ subcmd["build-list"] = {
 subcmd["apk-list"] = {
 	desc = "List all apk files",
 	usage = "",
-	run = function()
+	run = function(db)
 		for pkg in db:each() do
 			if pkg:relevant() then
 				print(pkg:get_apk_file_name())
@@ -105,13 +106,13 @@ subcmd["apk-list"] = {
 
 subcmd["dump-json"] = {
 	desc = "Dump all abuilds from aports tree to JSON",
-	run = function()
+	run = function(db)
 		local dump = require "aports.dump"
 		print(dump.pkgs_to_json(db:each_aport()))
 	end
 }
 
-function print_usage()
+local function print_usage()
 	io.write("usage: ap -d <DIR> SUBCOMMAND [options]\n\nSubcommands are:\n")
 	local k,v
 	for k in pairs(subcmd) do
@@ -120,13 +121,13 @@ function print_usage()
 end
 
 -- those should be read from some config file
-repodirs = {}
+local repodirs = {}
 
 
 -- parse args
-i = 1
-opts = {}
-help = false
+local i = 1
+local opts = {}
+local help = false
 while i <= #arg do
 	if arg[i] == "-d" then
 		i = i + 1
@@ -140,7 +141,7 @@ while i <= #arg do
 end
 
 
-cmd = table.remove(opts, 1)
+local cmd = table.remove(opts, 1)
 
 if help or cmd == nil then
 	print_usage()
@@ -158,10 +159,10 @@ end
 
 if subcmd[cmd] and type(subcmd[cmd].run) == "function" then
 	for _,dir in pairs(repodirs) do
-	db = require('aports.db').new(dir:match("(.*)/([^/]*)"))
-	loadtime = os.clock()
-	subcmd[cmd].run(opts)
-	runtime = os.clock() - loadtime
+	local db = require('aports.db').new(dir:match("(.*)/([^/]*)"))
+	local loadtime = os.clock()
+	subcmd[cmd].run(db, opts)
+	local runtime = os.clock() - loadtime
 --	io.stderr:write("db load time = "..tostring(loadtime).."\n")
 --	io.stderr:write("cmd run time = "..tostring(runtime).."\n")
 	end
