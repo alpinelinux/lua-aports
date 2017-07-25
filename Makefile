@@ -27,3 +27,8 @@ install: $(addprefix bin/,$(binfiles)) $(addprefix aports/,$(aportsfiles))
 	for file in $(binfiles); do \
 		install -m755 bin/$$file $(DESTDIR)$(bindir)/$${file%.lua} || exit 1; \
 	done
+
+check: lint
+
+lint:
+	luacheck aports bin
