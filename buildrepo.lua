@@ -137,7 +137,7 @@ local function usage(exitcode)
 	os.exit(exitcode)
 end
 
-opts, args = optarg.from_opthelp(opthelp)
+local opts, args = optarg.from_opthelp(opthelp)
 if opts == nil or #args == 0 then
 	usage(1)
 end
@@ -146,16 +146,16 @@ if opts.h then
 	usage(0)
 end
 
-homedir = os.getenv("HOME")
-aportsdir = opts.a or ("%s/aports"):format(homedir)
-repodest = opts.d or abuild.repodest or ("%s/packages"):format(homedir)
-logdirbase = opts.l
+local homedir = os.getenv("HOME")
+local aportsdir = opts.a or ("%s/aports"):format(homedir)
+local repodest = opts.d or abuild.repodest or ("%s/packages"):format(homedir)
+local logdirbase = opts.l
 
 if opts.n then
 	build_aport = function() return true end
 end
 
-stats = {}
+local stats = {}
 for _,repo in pairs(args) do
 	local db = require('aports.db').new(aportsdir, repo, repodest)
 	local pkgs = {}
@@ -170,8 +170,8 @@ for _,repo in pairs(args) do
 	end
 
 	-- count total aports
-	relevant_aports = 0
-	total_aports = 0
+	local relevant_aports = 0
+	local total_aports = 0
 	for aport in db:each_aport() do
 		total_aports = total_aports + 1
 		if aport:relevant() then
