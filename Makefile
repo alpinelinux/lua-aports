@@ -19,11 +19,11 @@ all:
 	@echo "To install run:"
 	@echo "  make install DESTDIR=<targetroot>"
 
-install: $(binfiles) $(addprefix aports/,$(aportsfiles))
+install: $(addprefix bin/,$(binfiles)) $(addprefix aports/,$(aportsfiles))
 	install -d $(DESTDIR)$(luasharedir)/aports \
 		$(DESTDIR)$(bindir)
 	install -m644 $(addprefix aports/,$(aportsfiles)) \
 		$(DESTDIR)$(luasharedir)/aports/
 	for file in $(binfiles); do \
-		install -m755 $$file $(DESTDIR)$(bindir)/$${file%.lua} || exit 1; \
+		install -m755 bin/$$file $(DESTDIR)$(bindir)/$${file%.lua} || exit 1; \
 	done
