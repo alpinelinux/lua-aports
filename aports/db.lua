@@ -87,6 +87,7 @@ local function apkbuilds_open(aportsdir, repos)
 	end
 
 	local obj = {}
+	--luacheck: ignore 631 (line is too long)
 	obj.handle = io.popen(". "..abuild.functions..";"..[[
 		for i in ]]..str..[[; do
 			pkgname=
