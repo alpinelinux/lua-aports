@@ -1,19 +1,19 @@
 
-VERSION=0.6.1
-LUA_VERSION=5.2
-prefix?=/usr
-sharedir?=$(prefix)/share
-luasharedir?=$(sharedir)/lua/$(LUA_VERSION)
-bindir?=$(prefix)/bin
+VERSION = 0.6.1
+LUA_VERSION = 5.2
+prefix ?= /usr
+sharedir ?= $(prefix)/share
+luasharedir ?= $(sharedir)/lua/$(LUA_VERSION)
+bindir ?= $(prefix)/bin
 
-aportsfiles= \
+aportsfiles = \
 	abuild.lua \
 	apkrepo.lua \
 	db.lua \
 	dump.lua \
 	pkg.lua
 
-binfiles=buildrepo.lua ap.lua
+binfiles = buildrepo.lua ap.lua
 
 all:
 	@echo "To install run:"
