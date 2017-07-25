@@ -57,6 +57,8 @@ local function split_apkbuild(line)
 	local dir, pkgname, pkgver, pkgrel, pkgdesc, arch, license, options, depends,
 		makedepends, checkdepends, subpackages, linguas, source, url =
 		string.match(line, string.rep("([^\\]*)", 14, "\\"))
+	linguas = split(linguas)
+
 	return {
 		dir = dir,
 		pkgname = pkgname,
@@ -67,8 +69,8 @@ local function split_apkbuild(line)
 		depends = split_deps(depends),
 		makedepends = split_deps(makedepends),
 		checkdepends = split_deps(checkdepends),
-		linguas = split(linguas),
-		subpackages = split_subpkgs(subpackages, r.linguas, pkgname),
+		linguas = linguas,
+		subpackages = split_subpkgs(subpackages, linguas, pkgname),
 		source = split(source),
 		url = url,
 		arch = split_key(arch),
