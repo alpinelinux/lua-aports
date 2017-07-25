@@ -17,11 +17,6 @@ local function err(formatstr, ...)
 	io.stderr:flush()
 end
 
-local function fatal(exitcode, formatstr, ...)
-	err(formatstr, ...)
-	os.exit(exitcode)
-end
-
 local function info(formatstr, ...)
 	io.stdout:write(("%s\n"):format(formatstr:format(...)))
 	io.stdout:flush()
@@ -42,7 +37,7 @@ end
 
 local function run_plugins(dirpath, func, ...)
 	local a = lfs.attributes(dirpath)
-	if a == nil or a.mode ~= "directory" then
+	if not a or a.mode ~= "directory" then
 		return
 	end
 	local flist = {}
@@ -52,7 +47,7 @@ local function run_plugins(dirpath, func, ...)
 		end
 	end
 	table.sort(flist)
-	for i = 1,#flist do
+	for i = 1, #flist do
 		local m = dofile(dirpath.."/"..flist[i])
 		if type(m[func]) == "function" then
 			m[func](...)
@@ -77,7 +72,7 @@ local function plugins_postrepo(...)
 end
 
 local function logfile_path(logdirbase, repo, aport)
-	if logdirbase == nil then
+	if not logdirbase then
 		return nil
 	end
 	local dir = ("%s/%s/%s"):format(logdirbase, repo, aport.pkgname)
@@ -132,13 +127,13 @@ local opthelp = [[
 
 local function usage(exitcode)
 	io.stdout:write((
-"Usage: %s [-hknps] [-a DIR] [-d DIR] [-l DIR] [-r REPO] REPO...\n"..
-"Options:\n%s\n"):format(_G.arg[0], opthelp))
+		"Usage: %s [-hknps] [-a DIR] [-d DIR] [-l DIR] [-r REPO] REPO...\n"..
+		"Options:\n%s\n"):format(_G.arg[0], opthelp))
 	os.exit(exitcode)
 end
 
 local opts, args = optarg.from_opthelp(opthelp)
-if opts == nil or #args == 0 then
+if not opts  or #args == 0 then
 	usage(1)
 end
 
@@ -156,15 +151,14 @@ if opts.n then
 end
 
 local stats = {}
-for _,repo in pairs(args) do
+for _, repo in pairs(args) do
 	local db = require('aports.db').new(aportsdir, repo, repodest)
 	local pkgs = {}
 	local unsorted = {}
-	local logdir = nil
 	stats[repo] = {}
 	local start_time = os.clock()
 
-	if db == nil then
+	if not db then
 		err("%s/%s: Failed to open apkbuilds", aportsdir, repo)
 		os.exit(1)
 	end
@@ -199,7 +193,9 @@ for _,repo in pairs(args) do
 	for aport in db:each_in_build_order(pkgs) do
 		local logfile = logfile_path(logdirbase, repo, aport)
 		tried = tried + 1
-		local progress = { tried = tried, total = #pkgs,
+		local progress = {
+			tried = tried,
+			total = #pkgs,
 			repo_built = stats[repo].relevant_aports - #pkgs + built,
 			repo_total = stats[repo].relevant_aports,
 		}
@@ -223,7 +219,7 @@ for _,repo in pairs(args) do
 	local deleted = 0
 	if opts.p then
 		local keep = {}
-		for aport,name in db:each() do
+		for aport, name in db:each() do
 			keep[aport:get_apk_file_name(name)] = true
 		end
 		local apkrepodir = ("%s/%s/%s"):format(repodest, repo, abuild.arch)
@@ -253,7 +249,7 @@ for _,repo in pairs(args) do
 	plugins_postrepo(repo, aportsdir, repodest, abuild.arch, stats[repo])
 end
 
-for repo,stat in pairs(stats) do
+for repo, stat in pairs(stats) do
 	info("%s built:\t%d", repo, stat.built)
 	info("%s tried:\t%d", repo, stat.tried)
 	info("%s deleted:\t%d", repo, stat.deleted)

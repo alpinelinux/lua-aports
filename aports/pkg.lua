@@ -4,8 +4,7 @@ local abuild = require('aports.abuild')
 local lfs = require('lfs')
 
 function M.is_remote(url)
-	local _,pref
-	for _,pref in pairs{ "^http://", "^ftp://", "^https://", ".*::.*" } do
+	for _, pref in pairs{ "^http://", "^ftp://", "^https://", ".*::.*" } do
 		if string.match(url, pref) then
 			return true
 		end
@@ -15,11 +14,11 @@ end
 
 -- iterator for all remote sources of given pkg/aport
 function M.remote_sources(p)
-	if p == nil or type(p.source) ~= "table" then
+	if not p or type(p.source) ~= "table" then
 		return nil
 	end
 	return coroutine.wrap(function()
-		for _,url in pairs(p.source) do
+		for _, url in pairs(p.source) do
 			if M.is_remote(url) then
 				coroutine.yield(url)
 			end
@@ -28,14 +27,13 @@ function M.remote_sources(p)
 end
 
 function M.get_maintainer(pkg)
-	if pkg == nil or pkg.dir == nil then
+	if not pkg or not pkg.dir then
 		return nil
 	end
 	local f = io.open(pkg.dir.."/APKBUILD")
-	if f == nil then
+	if not f then
 		return nil
 	end
-	local line
 	for line in f:lines() do
 		local maintainer = line:match("^%s*#%s*Maintainer:%s*(.*)")
 		if maintainer then
@@ -48,7 +46,7 @@ function M.get_maintainer(pkg)
 end
 
 function M.get_repo_name(pkg)
-	if pkg == nil or pkg.dir == nil then
+	if not pkg or not pkg.dir then
 		return nil
 	end
 	return string.match(pkg.dir, ".*/(.*)/.*")
@@ -72,7 +70,7 @@ end
 function M.apk_file_exists(pkg, name)
 	-- technically we check if it is readable...
 	local filepath = M.get_apk_file_path(pkg, name)
-        if lfs.attributes(filepath) == nil then
+	if not lfs.attributes(filepath) then
 		io.stderr:write(("DEBUG: path=%s\n"):format(filepath))
 	end
 	return lfs.attributes(filepath) ~= nil
@@ -91,7 +89,8 @@ function M.all_apks_exists(pkg)
 end
 
 function M.arch_enabled(pkg)
-	return not pkg.arch["!"..abuild.arch] and (pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch])
+	return not pkg.arch["!"..abuild.arch]
+		and (pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch])
 end
 
 function M.libc_enabled(pkg)
@@ -104,21 +103,20 @@ end
 
 function M.each_dependency(pkg)
 	return coroutine.wrap(function()
-		for _,dep in pairs(pkg.depends or {}) do
+		for _, dep in pairs(pkg.depends or {}) do
 			coroutine.yield(dep)
 		end
-		for _,dep in pairs(pkg.makedepends or {}) do
+		for _, dep in pairs(pkg.makedepends or {}) do
 			coroutine.yield(dep)
 		end
-		for _,dep in pairs(pkg.checkdepends or {}) do
+		for _, dep in pairs(pkg.checkdepends or {}) do
 			coroutine.yield(dep)
 		end
 	end)
 end
 
-
 function M.init(pkg, repodest)
-	for k,v in pairs(M) do
+	for k, v in pairs(M) do
 		pkg[k] = v
 	end
 	pkg.repodest = repodest

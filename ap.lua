@@ -2,18 +2,6 @@
 
 local lfs = require('lfs')
 
-local function build_is_outdated(pkg)
-	local apk_attr = lfs.attributes(aports.get_apk_file_path(pkg))
-	local apkbuild_attr = lfs.attributes(pkg.dir.."/APKBUILD")
-	if apk_attr == nil then
-		return true
-	end
-	return os.difftime(apk_attr.modification, apkbuild_attr.modification) < 0
-end
-
-local function build_is_missing(pkg)
-	return lfs.attributes(aports.get_apk_file_path(pkg)) == nil
-end
 
 -- subcommands -----------------------
 local subcmd = {}
@@ -22,9 +10,8 @@ subcmd.revdep = {
 	desc = "Print reverse dependencies",
 	usage = "PKG...",
 	run = function(db, opts)
-		local i
 		for i = 1, #opts do
-			for _,pkg in db:each_reverse_dependency(opts[i]) do
+			for _, pkg in db:each_reverse_dependency(opts[i]) do
 				print(pkg.pkgname)
 			end
 		end
@@ -67,7 +54,6 @@ subcmd.sources = {
 	desc = "List sources",
 	usage = "PKG...",
 	run = function(db, opts)
-		local i, p, _
 		for i = 1, #opts do
 			for pkg in db:each_pkg_with_name(opts[i]) do
 				for url in pkg:remote_sources() do
@@ -114,7 +100,6 @@ subcmd["dump-json"] = {
 
 local function print_usage()
 	io.write("usage: ap -d <DIR> SUBCOMMAND [options]\n\nSubcommands are:\n")
-	local k,v
 	for k in pairs(subcmd) do
 		print("  "..k)
 	end
@@ -125,25 +110,26 @@ local repodirs = {}
 
 
 -- parse args
-local i = 1
 local opts = {}
 local help = false
-while i <= #arg do
-	if arg[i] == "-d" then
+do
+	local i = 1
+	while i <= #arg do
+		if arg[i] == "-d" then
+			i = i + 1
+			repodirs[#repodirs + 1] = arg[i]
+		elseif arg[i] == "-h" then
+			help = true
+		else
+			opts[#opts + 1] = arg[i]
+		end
 		i = i + 1
-		repodirs[#repodirs + 1] = arg[i]
-	elseif arg[i] == "-h" then
-		help = true
-	else
-		opts[#opts + 1] = arg[i]
 	end
-	i = i + 1
 end
-
 
 local cmd = table.remove(opts, 1)
 
-if help or cmd == nil then
+if help or not cmd then
 	print_usage()
 	-- usage
 	return
@@ -158,15 +144,10 @@ if #repodirs == 0 then
 end
 
 if subcmd[cmd] and type(subcmd[cmd].run) == "function" then
-	for _,dir in pairs(repodirs) do
-	local db = require('aports.db').new(dir:match("(.*)/([^/]*)"))
-	local loadtime = os.clock()
-	subcmd[cmd].run(db, opts)
-	local runtime = os.clock() - loadtime
---	io.stderr:write("db load time = "..tostring(loadtime).."\n")
---	io.stderr:write("cmd run time = "..tostring(runtime).."\n")
+	for _, dir in pairs(repodirs) do
+		local db = require('aports.db').new(dir:match("(.*)/([^/]*)"))
+		subcmd[cmd].run(db, opts)
 	end
 else
 	io.stderr:write(cmd..": invalid subcommand\n")
 end
-

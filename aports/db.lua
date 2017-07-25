@@ -5,14 +5,13 @@ local pkg = require('aports.pkg')
 
 local function split_subpkgs(str, linguas, pkgname)
 	local t = {}
-	local e
-	if (str == nil) then
+	if not str then
 		return nil
 	end
 	for e in string.gmatch(str, "%S+") do
 		t[#t + 1] = string.gsub(e, ":.*", "")
 	end
-	for k,v in pairs(linguas) do
+	for _, v in pairs(linguas) do
 		t[#t + 1] = ("%s-lang-%s"):format(pkgname, v)
 	end
 	return t
@@ -20,8 +19,7 @@ end
 
 local function split_deps(str)
 	local t = {}
-	local e
-	if (str == nil) then
+	if not str then
 		return nil
 	end
 	for e in string.gmatch(str, "%S+") do
@@ -32,8 +30,7 @@ end
 
 local function split(str)
 	local t = {}
-	local e
-	if (str == nil) then
+	if not str then
 		return nil
 	end
 	for e in string.gmatch(str, "%S+") do
@@ -44,14 +41,14 @@ end
 
 local function split_key(str)
 	local t = {}
-	for _,key in pairs(split(str)) do
+	for _, key in pairs(split(str)) do
 		t[key] = true
 	end
 	return t
 end
 
 local function split_apkbuild(line)
-	if line == nil then
+	if not line then
 		return nil
 	end
 	local dir, pkgname, pkgver, pkgrel, pkgdesc, arch, license, options, depends,
@@ -80,13 +77,12 @@ end
 
 -- parse the APKBUILDs and return an iterator
 local function apkbuilds_open(aportsdir, repos)
-	local i,v, p
-	local str=""
-	if repos == nil then
+	local str = ""
+	if not repos then
 		return nil
 	end
 	--expand repos
-	for _,repo in pairs(repos) do
+	for _, repo in pairs(repos) do
 		str = ("%s %s/%s/*/APKBUILD"):format(str, aportsdir, repo)
 	end
 
@@ -118,7 +114,6 @@ local function apkbuilds_open(aportsdir, repos)
 		return function()
 			return split_apkbuild(self.handle:read("*line"))
 		end
-
 	end
 	obj.close = function(self)
 		return self.handle:close()
@@ -138,8 +133,7 @@ local function init_apkdb(aportsdir, repos, repodest)
 		pkg.init(a, repodest)
 		table.insert(pkgdb[a.pkgname], a)
 		-- add subpackages to package db
-		local k,v
-		for k,v in pairs(a.subpackages) do
+		for _, v in pairs(a.subpackages) do
 			if pkgdb[v] == nil then
 				pkgdb[v] = {}
 			end
@@ -160,17 +154,16 @@ local function init_apkdb(aportsdir, repos, repodest)
 end
 
 local Aports = {}
-function Aports:recursive_dependencies(pn)
+function Aports:recursive_dependencies(pkgname)
 	local visited={}
 	local apkdb = self.apks
 
 	return coroutine.wrap(function()
-		function recurs(pn)
-			if pn == nil or visited[pn] or apkdb[pn] == nil then
+		local function recurs(pn)
+			if not pn or visited[pn] or not apkdb[pn] then
 				return nil
 			end
 			visited[pn] = true
-			local _, p
 			for _, p in pairs(apkdb[pn]) do
 				for dep in p:each_dependency() do
 					if recurs(dep) then
@@ -180,36 +173,35 @@ function Aports:recursive_dependencies(pn)
 			end
 			coroutine.yield(pn)
 		end
-		return recurs(pn)
+		return recurs(pkgname)
 	end)
 end
 
 function Aports:target_packages(pkgname)
 	return coroutine.wrap(function()
-		for k,v in pairs(self.apks[pkgname]) do
+		for _, v in pairs(self.apks[pkgname]) do
 			coroutine.yield(pkgname.."-"..v.pkgver.."-r"..v.pkgrel..".apk")
 		end
 	end)
 end
 
 function Aports:each_name()
-	local apks = self.apks
 	return coroutine.wrap(function()
-		for k,v in pairs(self.apks) do
-			coroutine.yield(k,v)
+		for k, v in pairs(self.apks) do
+			coroutine.yield(k, v)
 		end
 	end)
 end
 
-function Aports:each_reverse_dependency(pkg)
+function Aports:each_reverse_dependency(pkg)  --luacheck: ignore 431
 	return coroutine.wrap(function()
-		for k,v in pairs(self.revdeps[pkg] or {}) do
-			coroutine.yield(k,v)
+		for k, v in pairs(self.revdeps[pkg] or {}) do
+			coroutine.yield(k, v)
 		end
 	end)
 end
 
-function Aports:each_known_dependency(pkg)
+function Aports:each_known_dependency(pkg)  --luacheck: ignore 431
 	return coroutine.wrap(function()
 		for dep in pkg:each_dependency() do
 			if self.apks[dep] then
@@ -220,12 +212,12 @@ function Aports:each_known_dependency(pkg)
 end
 
 function Aports:each_pkg_with_name(name)
-	if self.apks[name] == nil then
+	if not self.apks[name] then
 		io.stderr:write("WARNING: "..name..": not provided by any known APKBUILD\n")
 		return function() return nil end
 	end
 	return coroutine.wrap(function()
-		for index, pkg in pairs(self.apks[name]) do
+		for index, pkg in pairs(self.apks[name]) do  --luacheck: ignore 431
 			coroutine.yield(pkg, index)
 		end
 	end)
@@ -234,7 +226,7 @@ end
 function Aports:each()
 	return coroutine.wrap(function()
 		for name, pkglist in self:each_name() do
-			for _, pkg in pairs(pkglist) do
+			for _, pkg in pairs(pkglist) do  --luacheck: ignore 431
 				coroutine.yield(pkg, name)
 			end
 		end
@@ -243,7 +235,7 @@ end
 
 function Aports:each_aport()
 	return coroutine.wrap(function()
-		for pkg, name in self:each() do
+		for pkg, name in self:each() do  --luacheck: ignore 431
 			if name == pkg.pkgname then
 				coroutine.yield(pkg)
 			end
@@ -263,16 +255,16 @@ end
 
 function Aports:each_in_build_order(namelist)
 	local pkgs = {}
-	for _,name in pairs(namelist) do
-		for pkg in self:each_pkg_with_name(name) do
+	for _, name in pairs(namelist) do
+		for pkg in self:each_pkg_with_name(name) do  --luacheck: ignore 431
 			pkgs[pkg.dir] = true
 		end
 	end
 
 	return coroutine.wrap(function()
-		for _,name in pairs(namelist) do
+		for _, name in pairs(namelist) do
 			for dep in self:recursive_dependencies(name) do
-				for pkg in self:each_pkg_with_name(dep) do
+				for pkg in self:each_pkg_with_name(dep) do  --luacheck: ignore 431
 					if pkgs[pkg.dir] then
 						coroutine.yield(pkg)
 						pkgs[pkg.dir] = nil
@@ -286,7 +278,7 @@ end
 function Aports:git_describe()
 	local cmd = ("git --git-dir %s/.git describe"):format(self.aportsdir)
 	local f = io.popen(cmd)
-	if f == nil then
+	if not f then
 		return nil
 	end
 	local result = f:read("*line")
@@ -295,7 +287,7 @@ function Aports:git_describe()
 	return result
 end
 
-function Aports:known_deps_exists(pkg)
+function Aports:known_deps_exists(pkg)  --luacheck: ignore 431
 	for name in self:each_known_dependency(pkg) do
 		for dep in self:each_pkg_with_name(name) do
 			if dep.pkgname ~= pkg.pkgname and dep:relevant() and not dep:all_apks_exists() then
