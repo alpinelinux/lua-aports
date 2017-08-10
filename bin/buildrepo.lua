@@ -87,7 +87,7 @@ local function logfile_path(logdirbase, repo, aport)
 end
 
 
-local function build_aport(aport, repodest, logfile)
+local function build_aport(aport, repodest, logfile, do_rootbld)
 	local success, errmsg = lfs.chdir(aport.dir)
 	if not success then
 		err("%s", errmsg)
@@ -98,6 +98,9 @@ local function build_aport(aport, repodest, logfile)
 		logredirect = ("> '%s' 2>&1"):format(logfile)
 	end
 	local cmd = ("REPODEST='%s' abuild -r -m %s"):format(repodest, logredirect)
+	if do_rootbld ~= nil then
+		cmd = ("REPODEST='%s' abuild -m %s rootbld"):format(repodest, logredirect)
+	end
 	success = os.execute(cmd)
 	if not success then
 		err("%s: Failed to build", aport.pkgname)
@@ -123,6 +126,7 @@ local opthelp = [[
  -p, --purge           Purge obsolete packages from REPODIR after build
  -r, --deps-repo=REPO  Dependencies are found in REPO
  -s, --skip-failed     Skip those who previously failed (src dir exists)
+ -R, --rootbld         Build packages in clean chroots
 ]]
 
 local function usage(exitcode)
@@ -204,7 +208,7 @@ for _, repo in pairs(args) do
 		elseif not (opts.s and skip_aport(aport)) then
 			log_progress(progress, repo, aport)
 			plugins_prebuild(aport, progress, repodest, abuild.arch, logfile)
-			local success = build_aport(aport, repodest, logfile)
+			local success = build_aport(aport, repodest, logfile, opts.R)
 			plugins_postbuild(aport, success, repodest, abuild.arch, logfile)
 			if success then
 				built = built + 1
