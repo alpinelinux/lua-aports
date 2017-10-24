@@ -99,6 +99,8 @@ local function apkbuilds_open(aportsdir, repos)
 			options=
 			depends=
 			makedepends=
+			makedepends_build=
+			makedepends_host=
 			checkdepends=
 			subpackages=
 			linguas=
@@ -108,7 +110,7 @@ local function apkbuilds_open(aportsdir, repos)
 			[ -n "$dir" ] || exit 1;
 			cd "$dir";
 			. ./APKBUILD;
-			echo $dir\\$pkgname\\$pkgver\\$pkgrel\\$pkgdesc\\$arch\\$license\\$options\\$depends\\$makedepends\\$checkdepends\\$subpackages\\$linguas\\$source\\$url ;
+			echo $dir\\$pkgname\\$pkgver\\$pkgrel\\$pkgdesc\\$arch\\$license\\$options\\$depends\\$makedepends $makedepends_host $makedepends_build\\$checkdepends\\$subpackages\\$linguas\\$source\\$url ;
 		done;
 	]])
 	obj.read = function(self)
