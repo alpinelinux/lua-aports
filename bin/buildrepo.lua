@@ -203,7 +203,7 @@ for _, repo in pairs(args) do
 			repo_built = stats[repo].relevant_aports - #pkgs + built,
 			repo_total = stats[repo].relevant_aports,
 		}
-		if not db:known_deps_exists(aport) then
+		if opts.s and (not db:known_deps_exists(aport)) then
 			warn("%s: Skipped due to missing dependencies", aport.pkgname)
 		elseif not (opts.s and skip_aport(aport)) then
 			log_progress(progress, repo, aport)
