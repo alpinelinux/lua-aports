@@ -23,7 +23,7 @@ local function split_deps(str)
 		return nil
 	end
 	for e in string.gmatch(str, "%S+") do
-		t[#t + 1] = string.gsub(e, "[=<>].*", "")
+		t[#t + 1] = string.gsub(e, "[=<>~].*", "")
 	end
 	return t
 end
