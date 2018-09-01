@@ -1,4 +1,4 @@
-#!/usr/bin/lua5.2
+#!/usr/bin/env lua
 
 local abuild = require("aports.abuild")
 local apkrepo = require("aports.apkrepo")
