@@ -87,7 +87,7 @@ local function logfile_path(logdirbase, repo, aport)
 end
 
 
-local function build_aport(aport, repodest, logfile, do_rootbld)
+local function build_aport(aport, aportsdir, repodest, logfile, do_rootbld)
 	local success, errmsg = lfs.chdir(aport.dir)
 	if not success then
 		err("%s", errmsg)
@@ -97,9 +97,11 @@ local function build_aport(aport, repodest, logfile, do_rootbld)
 	if logfile ~= nil then
 		logredirect = ("> '%s' 2>&1"):format(logfile)
 	end
-	local cmd = ("REPODEST='%s' abuild -r -m %s"):format(repodest, logredirect)
+	local cmd = ("APORTSDIR='%s' REPODEST='%s' abuild -r -m %s"):
+		format(aportsdir, repodest, logredirect)
 	if do_rootbld ~= nil then
-		cmd = ("REPODEST='%s' abuild -m %s rootbld"):format(repodest, logredirect)
+		cmd = ("APORTSDIR='%s' REPODEST='%s' abuild -m %s rootbld"):
+			format(aportsdir, repodest, logredirect)
 	end
 	success = os.execute(cmd)
 	if not success then
@@ -219,7 +221,7 @@ for _, repo in pairs(args) do
 		elseif not (opts.s and skip_aport(aport)) then
 			log_progress(progress, repo, aport)
 			plugins_prebuild(conf, aport, progress)
-			local success = build_aport(aport, conf.repodest, aport.logfile, opts.R)
+			local success = build_aport(aport, conf.aportsdir, conf.repodest, aport.logfile, opts.R)
 			plugins_postbuild(conf, aport, success)
 			if success then
 				built = built + 1
