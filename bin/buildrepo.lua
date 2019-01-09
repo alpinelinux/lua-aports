@@ -153,6 +153,8 @@ if f then
 end
 
 conf.pluginsdir = conf.pluginsdir or "/usr/share/buildrepo/plugins"
+conf.opts = opts
+conf.arch = abuild.arch
 
 local homedir = os.getenv("HOME")
 local aportsdir = opts.a or conf.aportsdir or ("%s/aports"):format(homedir)
