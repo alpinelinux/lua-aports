@@ -206,7 +206,7 @@ for _, repo in pairs(args) do
 	local built = 0
 	local tried = 0
 	for aport in db:each_in_build_order(pkgs) do
-		local logfile = logfile_path(conf.logdir, repo, aport)
+		aport.logfile = logfile_path(conf.logdir, repo, aport)
 		tried = tried + 1
 		local progress = {
 			tried = tried,
@@ -218,9 +218,9 @@ for _, repo in pairs(args) do
 			warn("%s: Skipped due to missing dependencies", aport.pkgname)
 		elseif not (opts.s and skip_aport(aport)) then
 			log_progress(progress, repo, aport)
-			plugins_prebuild(aport, progress, conf.repodest, abuild.arch, logfile, opts)
-			local success = build_aport(aport, conf.repodest, logfile, opts.R)
-			plugins_postbuild(aport, success, conf.repodest, abuild.arch, logfile, opts)
+			plugins_prebuild(aport, progress, conf.repodest, abuild.arch, aport.logfile, opts)
+			local success = build_aport(aport, conf.repodest, aport.logfile, opts.R)
+			plugins_postbuild(aport, success, conf.repodest, abuild.arch, aport.logfile, opts)
 			if success then
 				built = built + 1
 			end
