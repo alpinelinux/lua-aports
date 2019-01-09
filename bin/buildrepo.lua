@@ -159,7 +159,7 @@ conf.arch = abuild.arch
 local homedir = os.getenv("HOME")
 local aportsdir = opts.a or conf.aportsdir or ("%s/aports"):format(homedir)
 local repodest = opts.d or conf.repodest or abuild.repodest or ("%s/packages"):format(homedir)
-local logdirbase = opts.l or conf.logdir
+conf.logdir = opts.l or conf.logdir
 
 if opts.n then
 	build_aport = function() return true end
@@ -206,7 +206,7 @@ for _, repo in pairs(args) do
 	local built = 0
 	local tried = 0
 	for aport in db:each_in_build_order(pkgs) do
-		local logfile = logfile_path(logdirbase, repo, aport)
+		local logfile = logfile_path(conf.logdir, repo, aport)
 		tried = tried + 1
 		local progress = {
 			tried = tried,
