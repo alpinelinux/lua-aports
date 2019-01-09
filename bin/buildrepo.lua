@@ -157,7 +157,7 @@ conf.opts = opts
 conf.arch = abuild.arch
 
 local homedir = os.getenv("HOME")
-local aportsdir = opts.a or conf.aportsdir or ("%s/aports"):format(homedir)
+conf.aportsdir = opts.a or conf.aportsdir or ("%s/aports"):format(homedir)
 conf.repodest = opts.d or conf.repodest or abuild.repodest or ("%s/packages"):format(homedir)
 conf.logdir = opts.l or conf.logdir
 
@@ -167,14 +167,14 @@ end
 
 local stats = {}
 for _, repo in pairs(args) do
-	local db = require('aports.db').new(aportsdir, repo, conf.repodest)
+	local db = require('aports.db').new(conf.aportsdir, repo, conf.repodest)
 	local pkgs = {}
 	local unsorted = {}
 	stats[repo] = {}
 	local start_time = os.clock()
 
 	if not db then
-		err("%s/%s: Failed to open apkbuilds", aportsdir, repo)
+		err("%s/%s: Failed to open apkbuilds", conf.aportsdir, repo)
 		os.exit(1)
 	end
 
@@ -191,7 +191,7 @@ for _, repo in pairs(args) do
 	stats[repo].total_aports = total_aports
 
 	-- run prerepo hooks
-	plugins_prerepo(repo, aportsdir, conf.repodest, abuild.arch, stats[repo], opts)
+	plugins_prerepo(repo, conf.aportsdir, conf.repodest, abuild.arch, stats[repo], opts)
 
 	-- find out what needs to be built
 	for aport in db:each_need_build() do
@@ -261,7 +261,7 @@ for _, repo in pairs(args) do
 	stats[repo].time = os.clock() - start_time
 
 	-- run portrepo hooks
-	plugins_postrepo(repo, aportsdir, conf.repodest, abuild.arch, stats[repo], opts)
+	plugins_postrepo(repo, conf.aportsdir, conf.repodest, abuild.arch, stats[repo], opts)
 end
 
 for repo, stat in pairs(stats) do
