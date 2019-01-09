@@ -6,6 +6,7 @@ local lfs = require("lfs")
 local optarg = require("optarg")
 
 local pluginsdir = "/etc/buildrepo/plugins.d"
+local conf = {}
 
 local function warn(formatstr, ...)
 	io.stderr:write(("WARNING: %s\n"):format(formatstr:format(...)))
@@ -117,6 +118,7 @@ end
 -----------------------------------------------------------------
 local opthelp = [[
  -a, --aports=DIR      Set the aports base dir to DIR instead of $HOME/aports
+ -c, --config=FILE     Use FILE as config instead of /etc/buildrepo/config.lua
  -d, --destdir=DIR     Set destination repository base to DIR instead of
                        $HOME/packages
  -h, --help            Show this help and exit
@@ -145,10 +147,16 @@ if opts.h then
 	usage(0)
 end
 
+local configfile = opts.c or "/etc/buildrepo/config.lua"
+local f = loadfile(configfile, "t", conf)
+if f then
+	f()
+end
+
 local homedir = os.getenv("HOME")
-local aportsdir = opts.a or ("%s/aports"):format(homedir)
-local repodest = opts.d or abuild.repodest or ("%s/packages"):format(homedir)
-local logdirbase = opts.l
+local aportsdir = opts.a or conf.aportsdir or ("%s/aports"):format(homedir)
+local repodest = opts.d or conf.repodest or abuild.repodest or ("%s/packages"):format(homedir)
+local logdirbase = opts.l or conf.logdir
 
 if opts.n then
 	build_aport = function() return true end
