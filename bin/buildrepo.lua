@@ -5,7 +5,6 @@ local apkrepo = require("aports.apkrepo")
 local lfs = require("lfs")
 local optarg = require("optarg")
 
-local pluginsdir = "/etc/buildrepo/plugins.d"
 local conf = {}
 
 local function warn(formatstr, ...)
@@ -57,19 +56,19 @@ local function run_plugins(dirpath, func, ...)
 end
 
 local function plugins_prebuild(...)
-	return run_plugins(pluginsdir, "prebuild", ...)
+	return run_plugins(conf.pluginsdir, "prebuild", ...)
 end
 
 local function plugins_postbuild(...)
-	return run_plugins(pluginsdir, "postbuild", ...)
+	return run_plugins(conf.pluginsdir, "postbuild", ...)
 end
 
 local function plugins_prerepo(...)
-	return run_plugins(pluginsdir, "prerepo", ...)
+	return run_plugins(conf.pluginsdir, "prerepo", ...)
 end
 
 local function plugins_postrepo(...)
-	return run_plugins(pluginsdir, "postrepo", ...)
+	return run_plugins(conf.pluginsdir, "postrepo", ...)
 end
 
 local function logfile_path(logdirbase, repo, aport)
@@ -152,6 +151,8 @@ local f = loadfile(configfile, "t", conf)
 if f then
 	f()
 end
+
+conf.pluginsdir = conf.pluginsdir or "/usr/share/buildrepo/plugins"
 
 local homedir = os.getenv("HOME")
 local aportsdir = opts.a or conf.aportsdir or ("%s/aports"):format(homedir)
