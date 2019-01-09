@@ -191,7 +191,7 @@ for _, repo in pairs(args) do
 	stats[repo].total_aports = total_aports
 
 	-- run prerepo hooks
-	plugins_prerepo(repo, conf.aportsdir, conf.repodest, abuild.arch, stats[repo], opts)
+	plugins_prerepo(conf, repo, stats[repo])
 
 	-- find out what needs to be built
 	for aport in db:each_need_build() do
@@ -218,9 +218,9 @@ for _, repo in pairs(args) do
 			warn("%s: Skipped due to missing dependencies", aport.pkgname)
 		elseif not (opts.s and skip_aport(aport)) then
 			log_progress(progress, repo, aport)
-			plugins_prebuild(aport, progress, conf.repodest, abuild.arch, aport.logfile, opts)
+			plugins_prebuild(conf, aport, progress)
 			local success = build_aport(aport, conf.repodest, aport.logfile, opts.R)
-			plugins_postbuild(aport, success, conf.repodest, abuild.arch, aport.logfile, opts)
+			plugins_postbuild(conf, aport, success)
 			if success then
 				built = built + 1
 			end
@@ -261,7 +261,7 @@ for _, repo in pairs(args) do
 	stats[repo].time = os.clock() - start_time
 
 	-- run portrepo hooks
-	plugins_postrepo(repo, conf.aportsdir, conf.repodest, abuild.arch, stats[repo], opts)
+	plugins_postrepo(conf, repo, stats[repo])
 end
 
 for repo, stat in pairs(stats) do
