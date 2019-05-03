@@ -98,6 +98,10 @@ local function apkbuilds_open(aportsdir, repos)
 			license=
 			options=
 			depends=
+			depends_doc=
+			depends_dev=
+			depends_libs=
+			depends_openrc=
 			makedepends=
 			makedepends_build=
 			makedepends_host=
