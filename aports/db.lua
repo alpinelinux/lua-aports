@@ -52,8 +52,8 @@ local function split_apkbuild(line)
 		return nil
 	end
 	local dir, pkgname, pkgver, pkgrel, pkgdesc, arch, license, options, depends,
-		makedepends, checkdepends, subpackages, linguas, source, url =
-		string.match(line, string.rep("([^\\]*)", 14, "\\"))
+		makedepends, checkdepends, subpackages, linguas, source, url, provides =
+		string.match(line, string.rep("([^\\]*)", 16, "\\"))
 	linguas = split(linguas)
 
 	return {
@@ -71,7 +71,8 @@ local function split_apkbuild(line)
 		source = split(source),
 		url = url,
 		arch = split_key(arch),
-		options = split_key(options)
+		options = split_key(options),
+		provides = string.gsub(provides, "[=<>~].*", ""),
 	}
 end
 
@@ -116,7 +117,7 @@ local function apkbuilds_open(aportsdir, repos)
 			[ -n "$dir" ] || exit 1;
 			cd "$dir";
 			. ./APKBUILD;
-			echo $dir\\$pkgname\\$pkgver\\$pkgrel\\$pkgdesc\\$arch\\$license\\$options\\$depends\\$makedepends $makedepends_host $makedepends_build\\$checkdepends\\$subpackages\\$linguas\\$source\\$url ;
+			echo $dir\\$pkgname\\$pkgver\\$pkgrel\\$pkgdesc\\$arch\\$license\\$options\\$depends\\$makedepends $makedepends_host $makedepends_build\\$checkdepends\\$subpackages\\$linguas\\$source\\$url\\$provides ;
 		done;
 	]])
 	obj.read = function(self)
@@ -147,6 +148,13 @@ local function init_apkdb(aportsdir, repos, repodest)
 				pkgdb[v] = {}
 			end
 			table.insert(pkgdb[v], a)
+		end
+		-- add provides
+		if a.provides and a.provides ~= "" then
+			if pkgdb[a.provides] == nil then
+				pkgdb[a.provides] = {}
+			end
+			table.insert(pkgdb[a.provides], a)
 		end
 		-- add to reverse dependencies
 		for dep in a:each_dependency() do
