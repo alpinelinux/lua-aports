@@ -102,11 +102,13 @@ local function apkbuilds_open(aportsdir, repos)
 			depends_dev=
 			depends_libs=
 			depends_openrc=
+			depends_static=
 			makedepends=
 			makedepends_build=
 			makedepends_host=
 			checkdepends=
 			subpackages=
+			provides=
 			linguas=
 			source=
 			url=
