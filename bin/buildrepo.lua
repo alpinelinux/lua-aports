@@ -237,7 +237,9 @@ for _, repo in pairs(args) do
 	if opts.p then
 		local keep = {}
 		for aport, name in db:each() do
-			keep[aport:get_apk_file_name(name)] = true
+			if aport:relevant() then
+				keep[aport:get_apk_file_name(name)] = true
+			end
 		end
 		local apkrepodir = ("%s/%s/%s"):format(conf.repodest, repo, abuild.arch)
 		for file in lfs.dir(apkrepodir) do
