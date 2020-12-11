@@ -5,6 +5,7 @@ local lfs = require('lfs')
 
 -- subcommands -----------------------
 local subcmd = {}
+local deprecated = {}
 
 subcmd.revdep = {
 	desc = "Print reverse dependencies",
@@ -28,7 +29,7 @@ subcmd.list = {
 	end
 }
 
-subcmd.recursdeps = {
+subcmd["recursive-deps"] = {
 	desc = "Recursively print all make dependencies for given packages",
 	usage = "PKG...",
 	run = function (db, opts)
@@ -39,6 +40,14 @@ subcmd.recursdeps = {
 		end
 	end
 }
+
+-- for backwards compatiblity
+subcmd.recursdeps = {
+	desc = "Alias to recursive-deps for compatibility",
+	usage = "PKG...",
+	run = subcmd["recursive-deps"].run
+}
+deprecated.recursdeps = true
 
 subcmd["recursive-revdeps"] = {
 	desc = "Recursively print all reverse make dependencies for given packages",
@@ -124,7 +133,9 @@ subcmd["toplevel-aports"] = {
 local function print_usage()
 	io.write("usage: ap -d <DIR> SUBCOMMAND [options]\n\nSubcommands are:\n")
 	for k in pairs(subcmd) do
-		print("  "..k)
+		if not deprecated[k] then
+			print("  "..k)
+		end
 	end
 end
 
