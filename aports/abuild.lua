@@ -24,9 +24,18 @@ function M.get_conf(var)
 end
 
 local function get_cached_var(var)
+	-- check cache
 	if abuild_conf[var] then
 		return abuild_conf[var]
 	end
+
+	-- use os env var
+	abuild_conf[var] = os.getenv(var)
+	if abuild_conf[var] ~= nil then
+		return abuild_conf[var]
+	end
+
+	-- execute functions.sh
 	local f = io.popen((' . %s ; echo -n "$%s"'):format(M.functions, var))
 	abuild_conf[var] = f:read("*all")
 	f:close()
