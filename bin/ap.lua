@@ -98,6 +98,17 @@ subcmd["dump-json"] = {
 	end
 }
 
+subcmd["toplevel-aports"] = {
+	desc = "List top-level aports",
+	run = function(db)
+		for p in db:each_aport() do
+			if not db.revdeps[p.pkgname] then
+				print(p.pkgname)
+			end
+		end
+	end
+}
+
 local function print_usage()
 	io.write("usage: ap -d <DIR> SUBCOMMAND [options]\n\nSubcommands are:\n")
 	for k in pairs(subcmd) do
