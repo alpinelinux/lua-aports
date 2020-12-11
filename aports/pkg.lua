@@ -109,8 +109,10 @@ function M.each_dependency(pkg)
 		for _, dep in pairs(pkg.makedepends or {}) do
 			coroutine.yield(dep)
 		end
-		for _, dep in pairs(pkg.checkdepends or {}) do
-			coroutine.yield(dep)
+		if not pkg.options["!check"] then
+			for _, dep in pairs(pkg.checkdepends or {}) do
+				coroutine.yield(dep)
+			end
 		end
 	end)
 end
