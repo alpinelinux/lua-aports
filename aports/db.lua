@@ -194,6 +194,32 @@ function Aports:recursive_dependencies(pkgname)
 	end)
 end
 
+function Aports:recursive_reverse_dependencies(pkgname)
+	local visited={}
+	local apkdb = self.apks
+
+	return coroutine.wrap(function()
+		local function recurs(pn)
+			if not pn or visited[pn] or not apkdb[pn] then
+				return nil
+			end
+			visited[pn] = true
+			for _,dep in self:each_reverse_dependency(pn) do
+				for _,subpkg in pairs(dep.subpackages) do
+					if recurs(subpkg) then
+						return true
+					end
+				end
+				if recurs(dep.pkgname) then
+					return true
+				end
+			end
+			coroutine.yield(pn)
+		end
+		return recurs(pkgname)
+	end)
+end
+
 function Aports:target_packages(pkgname)
 	return coroutine.wrap(function()
 		for _, v in pairs(self.apks[pkgname]) do

@@ -40,6 +40,18 @@ subcmd.recursdeps = {
 	end
 }
 
+subcmd["recursive-revdeps"] = {
+	desc = "Recursively print all reverse make dependencies for given packages",
+	usage = "PKG...",
+	run = function (db, opts)
+		for i = 1, #opts do
+			for dep in db:recursive_reverse_dependencies(opts[i]) do
+				print(dep)
+			end
+		end
+	end
+}
+
 subcmd.builddirs = {
 	desc = "Print the build dirs for given packages in build order",
 	usage = "PKG...",
