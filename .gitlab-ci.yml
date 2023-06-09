@@ -1,0 +1,11 @@
+test-default:
+  image: alpine:latest
+  stage: test
+  variables:
+    LUA_VERSION: "5.2"
+  script:
+    - apk add make luacheck lua$LUA_VERSION lua$LUA_VERSION-filesystem lua$LUA_VERSION-busted
+    - make check LUA_VERSION=$LUA_VERSION
+  tags:
+    - docker-alpine
+    - x86_64
