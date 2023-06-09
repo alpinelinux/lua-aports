@@ -1,7 +1,6 @@
 #!/usr/bin/lua5.2
 
-local lfs = require('lfs')
-
+local lfs = require("lfs")
 
 -- subcommands -----------------------
 local subcmd = {}
@@ -16,49 +15,49 @@ subcmd.revdep = {
 				print(pkg.pkgname)
 			end
 		end
-	end
+	end,
 }
 
 subcmd.list = {
 	desc = "Print all packages built from aports tree",
 	usage = "",
 	run = function(db)
-		for _,pn in db:each() do
+		for _, pn in db:each() do
 			print(pn)
 		end
-	end
+	end,
 }
 
 subcmd["recursive-deps"] = {
 	desc = "Recursively print all make dependencies for given packages",
 	usage = "PKG...",
-	run = function (db, opts)
+	run = function(db, opts)
 		for i = 1, #opts do
 			for dep in db:recursive_dependencies(opts[i]) do
 				print(dep)
 			end
 		end
-	end
+	end,
 }
 
 -- for backwards compatiblity
 subcmd.recursdeps = {
 	desc = "Alias to recursive-deps for compatibility",
 	usage = "PKG...",
-	run = subcmd["recursive-deps"].run
+	run = subcmd["recursive-deps"].run,
 }
 deprecated.recursdeps = true
 
 subcmd["recursive-revdeps"] = {
 	desc = "Recursively print all reverse make dependencies for given packages",
 	usage = "PKG...",
-	run = function (db, opts)
+	run = function(db, opts)
 		for i = 1, #opts do
 			for dep in db:recursive_reverse_dependencies(opts[i]) do
 				print(dep)
 			end
 		end
-	end
+	end,
 }
 
 subcmd.builddirs = {
@@ -68,7 +67,7 @@ subcmd.builddirs = {
 		for pkg in db:each_in_build_order(opts) do
 			print(pkg.dir)
 		end
-	end
+	end,
 }
 
 subcmd.sources = {
@@ -82,7 +81,7 @@ subcmd.sources = {
 				end
 			end
 		end
-	end
+	end,
 }
 
 subcmd["build-list"] = {
@@ -96,7 +95,7 @@ subcmd["build-list"] = {
 		for pkg in db:each_in_build_order(nlist) do
 			print(pkg.dir)
 		end
-	end
+	end,
 }
 
 subcmd["apk-list"] = {
@@ -108,15 +107,15 @@ subcmd["apk-list"] = {
 				print(pkg:get_apk_file_name())
 			end
 		end
-	end
+	end,
 }
 
 subcmd["dump-json"] = {
 	desc = "Dump all abuilds from aports tree to JSON",
 	run = function(db)
-		local dump = require "aports.dump"
+		local dump = require("aports.dump")
 		print(dump.pkgs_to_json(db:each_aport()))
-	end
+	end,
 }
 
 subcmd["toplevel-aports"] = {
@@ -127,21 +126,20 @@ subcmd["toplevel-aports"] = {
 				print(p.pkgname)
 			end
 		end
-	end
+	end,
 }
 
 local function print_usage()
 	io.write("usage: ap -d <DIR> SUBCOMMAND [options]\n\nSubcommands are:\n")
 	for k in pairs(subcmd) do
 		if not deprecated[k] then
-			print("  "..k)
+			print("  " .. k)
 		end
 	end
 end
 
 -- those should be read from some config file
 local repodirs = {}
-
 
 -- parse args
 local opts = {}
@@ -179,9 +177,9 @@ end
 
 if subcmd[cmd] and type(subcmd[cmd].run) == "function" then
 	for _, dir in pairs(repodirs) do
-		local db = require('aports.db').new(dir:match("(.*)/([^/]*)"))
+		local db = require("aports.db").new(dir:match("(.*)/([^/]*)"))
 		subcmd[cmd].run(db, opts)
 	end
 else
-	io.stderr:write(cmd..": invalid subcommand\n")
+	io.stderr:write(cmd .. ": invalid subcommand\n")
 end
