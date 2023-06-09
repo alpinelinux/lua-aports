@@ -1,10 +1,9 @@
-
 local M = {}
-local abuild = require('aports.abuild')
-local lfs = require('lfs')
+local abuild = require("aports.abuild")
+local lfs = require("lfs")
 
 function M.is_remote(url)
-	for _, pref in pairs{ "^http://", "^ftp://", "^https://", ".*::.*" } do
+	for _, pref in pairs({ "^http://", "^ftp://", "^https://", ".*::.*" }) do
 		if string.match(url, pref) then
 			return true
 		end
@@ -30,7 +29,7 @@ function M.get_maintainer(pkg)
 	if not pkg or not pkg.dir then
 		return nil
 	end
-	local f = io.open(pkg.dir.."/APKBUILD")
+	local f = io.open(pkg.dir .. "/APKBUILD")
 	if not f then
 		return nil
 	end
@@ -53,26 +52,23 @@ function M.get_repo_name(pkg)
 end
 
 function M.get_apk_file_name(pkg, name)
-	return (name or pkg.pkgname).."-"..pkg.pkgver.."-r"..pkg.pkgrel..".apk"
+	return (name or pkg.pkgname) .. "-" .. pkg.pkgver .. "-r" .. pkg.pkgrel .. ".apk"
 end
 
 function M.get_apk_file_path(pkg, name)
 	local repodest = pkg.repodest or abuild.repodest
 	if pkg.repodest == nil and abuild.pkgdest ~= nil and abuild.pkgdest ~= "" then
-		return abuild.pkgdest.."/"..M.get_apk_file_name(pkg, name)
+		return abuild.pkgdest .. "/" .. M.get_apk_file_name(pkg, name)
 	end
 	if repodest ~= nil and repodest ~= "" then
-		return repodest.."/"..M.get_repo_name(pkg).."/"..abuild.arch.."/"..M.get_apk_file_name(pkg, name)
+		return repodest .. "/" .. M.get_repo_name(pkg) .. "/" .. abuild.arch .. "/" .. M.get_apk_file_name(pkg, name)
 	end
-	return pkg.dir.."/"..M.get_apk_file_name(pkg, name)
+	return pkg.dir .. "/" .. M.get_apk_file_name(pkg, name)
 end
 
 function M.apk_file_exists(pkg, name)
 	-- technically we check if it is readable...
 	local filepath = M.get_apk_file_path(pkg, name)
-	if not lfs.attributes(filepath) then
-		io.stderr:write(("DEBUG: path=%s\n"):format(filepath))
-	end
 	return lfs.attributes(filepath) ~= nil
 end
 
@@ -89,12 +85,11 @@ function M.all_apks_exists(pkg)
 end
 
 function M.arch_enabled(pkg)
-	return not pkg.arch["!"..abuild.arch]
-		and (pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch])
+	return not pkg.arch["!" .. abuild.arch] and (pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch])
 end
 
 function M.libc_enabled(pkg)
-	return not pkg.options["!libc_"..abuild.libc]
+	return not pkg.options["!libc_" .. abuild.libc]
 end
 
 function M.relevant(pkg)
