@@ -29,6 +29,9 @@ install: $(addprefix bin/,$(binfiles)) $(addprefix aports/,$(aportsfiles))
 	done
 
 check: lint
+	busted-$(LUA_VERSION)
 
 lint:
 	luacheck aports bin
+
+
