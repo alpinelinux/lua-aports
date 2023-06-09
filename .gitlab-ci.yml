@@ -4,7 +4,7 @@ test-default:
   variables:
     LUA_VERSION: "5.2"
   script:
-    - apk add make luacheck lua$LUA_VERSION lua$LUA_VERSION-filesystem lua$LUA_VERSION-busted
+    - apk add make luacheck lua$LUA_VERSION lua$LUA_VERSION-filesystem lua$LUA_VERSION-busted lua$LUA_VERSION-posix abuild
     - make check LUA_VERSION=$LUA_VERSION
   tags:
     - docker-alpine
