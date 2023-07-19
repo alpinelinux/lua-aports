@@ -1,8 +1,9 @@
 test-default:
   image: alpine:latest
   stage: test
-  variables:
-    LUA_VERSION: "5.2"
+  parallel:
+    matrix:
+      - LUA_VERSION: ["5.2", "5.3", "5.4"]
   script:
     - apk add make luacheck lua$LUA_VERSION lua$LUA_VERSION-filesystem lua$LUA_VERSION-busted lua$LUA_VERSION-posix abuild
     - make check LUA_VERSION=$LUA_VERSION
