@@ -27,7 +27,7 @@ describe("abuild", function()
 	end)
 
 	teardown(function()
-		os.execute("rm -r " .. tmpdir)
+		require("pl.dir").rmtree(tmpdir)
 		posix.stdlib.setenv("ABUILD_USERCONF", nil)
 	end)
 
