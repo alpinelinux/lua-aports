@@ -9,6 +9,7 @@ describe("aports.pkg", function()
 		abuild_conf = tmpdir .. "/abuild.conf"
 		repodest = tmpdir .. "/pkgs"
 		os.remove(tmpdir)
+		local lfs = require("lfs")
 		lfs.mkdir(tmpdir)
 		lfs.mkdir(repodest)
 		local f = io.open(abuild_conf, "w")
@@ -23,6 +24,7 @@ describe("aports.pkg", function()
 		)
 		f:close()
 		posix.stdlib.setenv("ABUILD_USERCONF", abuild_conf)
+		package.path = "?.lua;" .. package.path
 		pkg = require("aports.pkg")
 		abuild = require("aports.abuild")
 	end)
@@ -257,7 +259,7 @@ describe("aports.pkg", function()
 					"dependency1",
 					"dependency2",
 				},
-				options = {}
+				options = {},
 			}
 
 			pkg.init(p)

@@ -9,6 +9,7 @@ describe("abuild", function()
 		tmpdir = os.tmpname()
 		abuild_conf = tmpdir .. "/abuild.conf"
 		os.remove(tmpdir)
+		local lfs = require("lfs")
 		lfs.mkdir(tmpdir)
 		local f = io.open(abuild_conf, "w")
 		f:write(
@@ -22,6 +23,7 @@ describe("abuild", function()
 		)
 		f:close()
 		posix.stdlib.setenv("ABUILD_USERCONF", abuild_conf)
+		package.path = "?.lua;" .. package.path
 	end)
 
 	teardown(function()
