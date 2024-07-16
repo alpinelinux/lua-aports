@@ -112,4 +112,23 @@ describe("db", function()
 			assert.same({ "d", "c", "b", "a" }, res)
 		end)
 	end)
+
+	describe("recursive_reverse_dependencies", function()
+		it("should list all reverse dependencies in correct order", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", depends = "b" },
+					{ pkgname = "b", makedepends = "c" },
+					{ pkgname = "c" },
+				},
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+			local res = {}
+			for p in repo1:recursive_reverse_dependencies("c") do
+				table.insert(res, p)
+			end
+			assert.same({ "a", "b", "c" }, res)
+		end)
+	end)
 end)
