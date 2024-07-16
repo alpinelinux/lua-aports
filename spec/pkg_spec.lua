@@ -1,8 +1,10 @@
-posix = require("posix")
+local posix = require("posix")
+
+local repodest
 
 describe("aports.pkg", function()
 	local pkg, abuild
-	local tmpdir, abuild_conf, repodir
+	local tmpdir, abuild_conf
 
 	setup(function()
 		tmpdir = os.tmpname()

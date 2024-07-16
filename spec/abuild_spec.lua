@@ -1,13 +1,13 @@
 -- abuild_spec.lua
 
-posix = require("posix")
+local posix = require("posix")
 
 describe("abuild", function()
 	local tmpdir
 
 	setup(function()
 		tmpdir = os.tmpname()
-		abuild_conf = tmpdir .. "/abuild.conf"
+		local abuild_conf = tmpdir .. "/abuild.conf"
 		os.remove(tmpdir)
 		local lfs = require("lfs")
 		lfs.mkdir(tmpdir)
