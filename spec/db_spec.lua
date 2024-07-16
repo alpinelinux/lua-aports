@@ -32,7 +32,8 @@ describe("db", function()
 							.. "checkdepends='%s'\n"
 							.. "options='%s'\n"
 							.. "subpackages='%s'\n"
-							.. "arch='%s'\n",
+							.. "arch='%s'\n"
+							.. "provides='%s'\n",
 						a.pkgname,
 						a.pkgver or "1.0",
 						a.pkgrel or "0",
@@ -41,7 +42,8 @@ describe("db", function()
 						a.checkdepends or "",
 						a.options or "",
 						a.subpackages or "",
-						a.arch or ""
+						a.arch or "",
+						a.provides or ""
 					)
 				)
 			end
@@ -205,8 +207,8 @@ describe("db", function()
 			mkrepos(tmpdir, {
 				repo1 = {
 					{ pkgname = "a", depends = "b" },
-					{ pkgname = "b", depends = "c" },
-					{ pkgname = "c" },
+					{ pkgname = "b", depends = "d" },
+					{ pkgname = "c", provides = "d" },
 				},
 			})
 			local repo1 = require("aports.db").new(tmpdir, "repo1")
