@@ -145,4 +145,38 @@ describe("db", function()
 			assert.same({ a = "a", a1 = "a", a2 = "a", b = "b" }, res)
 		end)
 	end)
+
+	describe("each_known_dependency", function()
+		it("should list all known dependencies", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", depends = "b c" },
+					{ pkgname = "b" },
+				},
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			local res = {}
+			for dep in repo1:each_known_dependency(repo1.apks.a[1]) do
+				table.insert(res, dep)
+			end
+			assert.same({ "b" }, res)
+		end)
+	end)
+
+	describe("each_aport", function()
+		it("should list all apk names and its origin", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", subpackages = "a1 a2" },
+					{ pkgname = "b" },
+				},
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			local res = {}
+			for dep in repo1:each_aport() do
+				res[dep.pkgname] = true
+			end
+			assert.same({ a = true, b = true }, res)
+		end)
+	end)
 end)
