@@ -66,4 +66,19 @@ describe("db", function()
 			assert.equal(repo1.apks.b[1].pkgname, "b")
 		end)
 	end)
+
+	describe("target_packages", function()
+		it("should list all target packages", function()
+			mkrepos(tmpdir, {
+				repo1 = { { pkgname = "a", pkgver = "2.0", pkgrel = "3" } },
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+			local res = {}
+			for p in repo1:target_packages("a") do
+				table.insert(res, p)
+			end
+			assert.same(res, { "a-2.0-r3.apk" })
+		end)
+	end)
 end)
