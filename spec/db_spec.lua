@@ -31,7 +31,8 @@ describe("db", function()
 							.. "makedepends='%s'\n"
 							.. "checkdepends='%s'\n"
 							.. "options='%s'\n"
-							.. "subpackages='%s'\n",
+							.. "subpackages='%s'\n"
+							.. "arch='%s'\n",
 						a.pkgname,
 						a.pkgver or "1.0",
 						a.pkgrel or "0",
@@ -39,7 +40,8 @@ describe("db", function()
 						a.makedepends or "",
 						a.checkdepends or "",
 						a.options or "",
-						a.subpackages or ""
+						a.subpackages or "",
+						a.arch or ""
 					)
 				)
 			end
@@ -174,6 +176,24 @@ describe("db", function()
 			local repo1 = require("aports.db").new(tmpdir, "repo1")
 			local res = {}
 			for dep in repo1:each_aport() do
+				res[dep.pkgname] = true
+			end
+			assert.same({ a = true, b = true }, res)
+		end)
+	end)
+
+	describe("each_need_build", function()
+		it("should list all aports that don't have built apk file", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", arch = "all", subpackages = "a1 a2" },
+					{ pkgname = "b", arch = "noarch" },
+					{ pkgname = "c" },
+				},
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			local res = {}
+			for dep in repo1:each_need_build() do
 				res[dep.pkgname] = true
 			end
 			assert.same({ a = true, b = true }, res)
