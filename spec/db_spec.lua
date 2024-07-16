@@ -199,4 +199,22 @@ describe("db", function()
 			assert.same({ a = true, b = true }, res)
 		end)
 	end)
+
+	describe("each_in_build_order", function()
+		it("should list the specified aports in build order", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", depends = "b" },
+					{ pkgname = "b", depends = "c" },
+					{ pkgname = "c" },
+				},
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			local res = {}
+			for a in repo1:each_in_build_order({ "a", "c" }) do
+				table.insert(res, a.pkgname)
+			end
+			assert.same({ "c", "a" }, res)
+		end)
+	end)
 end)
