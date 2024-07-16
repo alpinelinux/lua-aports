@@ -30,14 +30,16 @@ describe("db", function()
 							.. "depends='%s'\n"
 							.. "makedepends='%s'\n"
 							.. "checkdepends='%s'\n"
-							.. "options='%s'\n",
+							.. "options='%s'\n"
+							.. "subpackages='%s'\n",
 						a.pkgname,
 						a.pkgver or "1.0",
 						a.pkgrel or "0",
 						a.depends or "",
 						a.makedepends or "",
 						a.checkdepends or "",
-						a.options or ""
+						a.options or "",
+						a.subpackages or ""
 					)
 				)
 			end
@@ -45,21 +47,15 @@ describe("db", function()
 	end
 
 	setup(function()
-		tmpdir = mktmpdir()
-		local abuild_conf = tmpdir .. "/abuild.conf"
-		utils.writefile(abuild_conf, [[
-			CARCH=aarch64
-			CLIBC=musl
-			MYVAR=myvalue
-			CHOST=aarch64-alpine-linux-musl
-			]] .. "REPODEST=" .. tmpdir)
-		posix.stdlib.setenv("ABUILD_USERCONF", abuild_conf)
 		package.path = "?.lua;" .. package.path
 	end)
 
-	teardown(function()
+	before_each(function()
+		tmpdir = mktmpdir()
+	end)
+
+	after_each(function()
 		require("pl.dir").rmtree(tmpdir)
-		posix.stdlib.setenv("ABUILD_USERCONF", nil)
 	end)
 
 	describe("new", function()
@@ -129,6 +125,24 @@ describe("db", function()
 				table.insert(res, p)
 			end
 			assert.same({ "a", "b", "c" }, res)
+		end)
+	end)
+
+	describe("each_name", function()
+		it("should list all apk names and its origin", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", subpackages = "a1 a2" },
+					{ pkgname = "b" },
+				},
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+			local res = {}
+			for name, pkgs in repo1:each_name() do
+				res[name] = pkgs[1].pkgname
+			end
+			assert.same({ a = "a", a1 = "a", a2 = "a", b = "b" }, res)
 		end)
 	end)
 end)
