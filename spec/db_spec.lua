@@ -203,20 +203,31 @@ describe("db", function()
 	end)
 
 	describe("each_in_build_order", function()
-		it("should list the specified aports in build order", function()
+		before_each(function()
 			mkrepos(tmpdir, {
 				repo1 = {
 					{ pkgname = "a", depends = "b" },
 					{ pkgname = "b", depends = "d" },
 					{ pkgname = "c", provides = "d" },
+					{ pkgname = "d" },
 				},
 			})
+		end)
+		it("should list the specified aports in build order", function()
 			local repo1 = require("aports.db").new(tmpdir, "repo1")
 			local res = {}
 			for a in repo1:each_in_build_order({ "a", "c" }) do
 				table.insert(res, a.pkgname)
 			end
 			assert.same({ "c", "a" }, res)
+		end)
+		it("should not include other provides when deternmining build order", function()
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			local res = {}
+			for a in repo1:each_in_build_order({ "a", "d" }) do
+				table.insert(res, a.pkgname)
+			end
+			assert.same({ "d", "a" }, res)
 		end)
 	end)
 
