@@ -24,10 +24,20 @@ describe("db", function()
 				utils.writefile(
 					path.join(d, "APKBUILD"),
 					string.format(
-						"pkgname='%s'\n" .. "pkgver='%s'\n" .. "pkgrel='%s'\n",
+						"pkgname='%s'\n"
+							.. "pkgver='%s'\n"
+							.. "pkgrel='%s'\n"
+							.. "depends='%s'\n"
+							.. "makedepends='%s'\n"
+							.. "checkdepends='%s'\n"
+							.. "options='%s'\n",
 						a.pkgname,
 						a.pkgver or "1.0",
-						a.pkgrel or "0"
+						a.pkgrel or "0",
+						a.depends or "",
+						a.makedepends or "",
+						a.checkdepends or "",
+						a.options or ""
 					)
 				)
 			end
@@ -78,7 +88,28 @@ describe("db", function()
 			for p in repo1:target_packages("a") do
 				table.insert(res, p)
 			end
-			assert.same(res, { "a-2.0-r3.apk" })
+			assert.same({ "a-2.0-r3.apk" }, res)
+		end)
+	end)
+
+	describe("recursive_dependencies", function()
+		it("should list all dependencies in correct order", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", depends = "b" },
+					{ pkgname = "b", makedepends = "c" },
+					{ pkgname = "c", checkdepends = "d" },
+					{ pkgname = "d", checkdepends = "e", options = "!check" },
+					{ pkgname = "e" },
+				},
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+			local res = {}
+			for p in repo1:recursive_dependencies("a") do
+				table.insert(res, p)
+			end
+			assert.same({ "d", "c", "b", "a" }, res)
 		end)
 	end)
 end)
