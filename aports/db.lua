@@ -1,7 +1,6 @@
-
 local M = {}
-local abuild = require('aports.abuild')
-local pkg = require('aports.pkg')
+local abuild = require("aports.abuild")
+local pkg = require("aports.pkg")
 
 local function split_subpkgs(str, linguas, pkgname)
 	local t = {}
@@ -51,6 +50,7 @@ local function split_apkbuild(line)
 	if not line then
 		return nil
 	end
+	-- stylua: ignore
 	local dir, pkgname, pkgver, pkgrel, pkgdesc, arch, license, options, depends,
 		makedepends, checkdepends, subpackages, linguas, source, url, provides =
 		string.match(line, string.rep("([^\\]*)", 16, "\\"))
@@ -89,8 +89,8 @@ local function apkbuilds_open(aportsdir, repos)
 
 	local obj = {}
 	--luacheck: ignore 631 (line is too long)
-	obj.handle = io.popen(". "..abuild.functions..";"..[[
-		for i in ]]..str..[[; do
+	obj.handle = io.popen(". " .. abuild.functions .. ";" .. [[
+		for i in ]] .. str .. [[; do
 			pkgname=
 			pkgver=
 			pkgrel=
@@ -136,7 +136,7 @@ local function init_apkdb(aportsdir, repos, repodest)
 	local revdeps = {}
 	local apkbuilds = apkbuilds_open(aportsdir, repos)
 	for a in apkbuilds:read() do
-	--	io.write(a.pkgname.." "..a.pkgver.."\t"..a.dir.."\n")
+		--	io.write(a.pkgname.." "..a.pkgver.."\t"..a.dir.."\n")
 		if pkgdb[a.pkgname] == nil then
 			pkgdb[a.pkgname] = {}
 		end
@@ -172,7 +172,7 @@ end
 
 local Aports = {}
 function Aports:recursive_dependencies(pkgname)
-	local visited={}
+	local visited = {}
 	local apkdb = self.apks
 
 	return coroutine.wrap(function()
@@ -195,7 +195,7 @@ function Aports:recursive_dependencies(pkgname)
 end
 
 function Aports:recursive_reverse_dependencies(pkgname)
-	local visited={}
+	local visited = {}
 	local apkdb = self.apks
 
 	return coroutine.wrap(function()
@@ -204,8 +204,8 @@ function Aports:recursive_reverse_dependencies(pkgname)
 				return nil
 			end
 			visited[pn] = true
-			for _,dep in self:each_reverse_dependency(pn) do
-				for _,subpkg in pairs(dep.subpackages) do
+			for _, dep in self:each_reverse_dependency(pn) do
+				for _, subpkg in pairs(dep.subpackages) do
 					if recurs(subpkg) then
 						return true
 					end
@@ -223,7 +223,7 @@ end
 function Aports:target_packages(pkgname)
 	return coroutine.wrap(function()
 		for _, v in pairs(self.apks[pkgname]) do
-			coroutine.yield(pkgname.."-"..v.pkgver.."-r"..v.pkgrel..".apk")
+			coroutine.yield(pkgname .. "-" .. v.pkgver .. "-r" .. v.pkgrel .. ".apk")
 		end
 	end)
 end
@@ -236,7 +236,7 @@ function Aports:each_name()
 	end)
 end
 
-function Aports:each_reverse_dependency(pkg)  --luacheck: ignore 431
+function Aports:each_reverse_dependency(pkg) --luacheck: ignore 431
 	return coroutine.wrap(function()
 		for k, v in pairs(self.revdeps[pkg] or {}) do
 			coroutine.yield(k, v)
@@ -244,7 +244,7 @@ function Aports:each_reverse_dependency(pkg)  --luacheck: ignore 431
 	end)
 end
 
-function Aports:each_known_dependency(pkg)  --luacheck: ignore 431
+function Aports:each_known_dependency(pkg) --luacheck: ignore 431
 	return coroutine.wrap(function()
 		for dep in pkg:each_dependency() do
 			if self.apks[dep] then
@@ -256,11 +256,13 @@ end
 
 function Aports:each_pkg_with_name(name)
 	if not self.apks[name] then
-		io.stderr:write("WARNING: "..name..": not provided by any known APKBUILD\n")
-		return function() return nil end
+		io.stderr:write("WARNING: " .. name .. ": not provided by any known APKBUILD\n")
+		return function()
+			return nil
+		end
 	end
 	return coroutine.wrap(function()
-		for index, pkg in pairs(self.apks[name]) do  --luacheck: ignore 431
+		for index, pkg in pairs(self.apks[name]) do --luacheck: ignore 431
 			coroutine.yield(pkg, index)
 		end
 	end)
@@ -269,7 +271,7 @@ end
 function Aports:each()
 	return coroutine.wrap(function()
 		for name, pkglist in self:each_name() do
-			for _, pkg in pairs(pkglist) do  --luacheck: ignore 431
+			for _, pkg in pairs(pkglist) do --luacheck: ignore 431
 				coroutine.yield(pkg, name)
 			end
 		end
@@ -278,7 +280,7 @@ end
 
 function Aports:each_aport()
 	return coroutine.wrap(function()
-		for pkg, name in self:each() do  --luacheck: ignore 431
+		for pkg, name in self:each() do --luacheck: ignore 431
 			if name == pkg.pkgname then
 				coroutine.yield(pkg)
 			end
@@ -299,7 +301,7 @@ end
 function Aports:each_in_build_order(namelist)
 	local pkgs = {}
 	for _, name in pairs(namelist) do
-		for pkg in self:each_pkg_with_name(name) do  --luacheck: ignore 431
+		for pkg in self:each_pkg_with_name(name) do --luacheck: ignore 431
 			pkgs[pkg.dir] = true
 		end
 	end
@@ -307,7 +309,7 @@ function Aports:each_in_build_order(namelist)
 	return coroutine.wrap(function()
 		for _, name in pairs(namelist) do
 			for dep in self:recursive_dependencies(name) do
-				for pkg in self:each_pkg_with_name(dep) do  --luacheck: ignore 431
+				for pkg in self:each_pkg_with_name(dep) do --luacheck: ignore 431
 					if pkgs[pkg.dir] then
 						coroutine.yield(pkg)
 						pkgs[pkg.dir] = nil
@@ -330,7 +332,7 @@ function Aports:git_describe()
 	return result
 end
 
-function Aports:known_deps_exists(pkg)  --luacheck: ignore 431
+function Aports:known_deps_exists(pkg) --luacheck: ignore 431
 	for name in self:each_known_dependency(pkg) do
 		for dep in self:each_pkg_with_name(name) do
 			if dep.pkgname ~= pkg.pkgname and dep:relevant() and not dep:all_apks_exists() then
