@@ -101,6 +101,7 @@ describe("db", function()
 					{ pkgname = "c", checkdepends = "d" },
 					{ pkgname = "d", checkdepends = "e", options = "!check" },
 					{ pkgname = "e" },
+					{ pkgname = "not-this", provides = "a" },
 				},
 			})
 			local repo1 = require("aports.db").new(tmpdir, "repo1")
@@ -184,6 +185,24 @@ describe("db", function()
 		end)
 	end)
 
+	describe("each_pkg_with_name", function()
+		it("should list the origin(s) for the given package names", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", subpackages = "a1 a2" },
+					{ pkgname = "b" },
+					{ pkgname = "c", provides = "a1" },
+				},
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			local res = {}
+			for p in repo1:each_pkg_with_name("a1") do
+				res[p.pkgname] = true
+			end
+			assert.same({ a = true }, res)
+		end)
+	end)
+
 	describe("each_need_build", function()
 		it("should list all aports that don't have built apk file", function()
 			mkrepos(tmpdir, {
@@ -206,9 +225,9 @@ describe("db", function()
 		before_each(function()
 			mkrepos(tmpdir, {
 				repo1 = {
-					{ pkgname = "a", depends = "b" },
+					{ pkgname = "a", depends = "b", subpackages = "a1 a2" },
 					{ pkgname = "b", depends = "d" },
-					{ pkgname = "c", provides = "d" },
+					{ pkgname = "c", provides = "d>0" },
 					{ pkgname = "d" },
 				},
 			})
@@ -216,7 +235,7 @@ describe("db", function()
 		it("should list the specified aports in build order", function()
 			local repo1 = require("aports.db").new(tmpdir, "repo1")
 			local res = {}
-			for a in repo1:each_in_build_order({ "a", "c" }) do
+			for a in repo1:each_in_build_order({ "a1", "c" }) do
 				table.insert(res, a.pkgname)
 			end
 			assert.same({ "c", "a" }, res)
@@ -224,7 +243,7 @@ describe("db", function()
 		it("should not include other provides when deternmining build order", function()
 			local repo1 = require("aports.db").new(tmpdir, "repo1")
 			local res = {}
-			for a in repo1:each_in_build_order({ "a", "d" }) do
+			for a in repo1:each_in_build_order({ "a1", "d" }) do
 				table.insert(res, a.pkgname)
 			end
 			assert.same({ "d", "a" }, res)
