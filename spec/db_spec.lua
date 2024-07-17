@@ -186,7 +186,7 @@ describe("db", function()
 	end)
 
 	describe("each_pkg_with_name", function()
-		it("should list the origin(s) for the given package names", function()
+		it("should only list the origin(s) for the given package names", function()
 			mkrepos(tmpdir, {
 				repo1 = {
 					{ pkgname = "a", subpackages = "a1 a2" },
@@ -200,6 +200,24 @@ describe("db", function()
 				res[p.pkgname] = true
 			end
 			assert.same({ a = true }, res)
+		end)
+	end)
+
+	describe("each_provider_for", function()
+		it("should list the providing origins for the given package names", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", subpackages = "a1 a2" },
+					{ pkgname = "b" },
+					{ pkgname = "c", provides = "a1 b" },
+				},
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			local res = {}
+			for p in repo1:each_provider_for("a1") do
+				res[p.pkgname] = true
+			end
+			assert.same({ a = true, c = true }, res)
 		end)
 	end)
 

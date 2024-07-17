@@ -72,7 +72,7 @@ local function split_apkbuild(line)
 		url = url,
 		arch = split_key(arch),
 		options = split_key(options),
-		provides = string.gsub(provides, "[=<>~].*", ""),
+		provides = split_deps(provides),
 	}
 end
 
@@ -134,6 +134,7 @@ end
 local function init_apkdb(aportsdir, repos, repodest)
 	local pkgdb = {}
 	local revdeps = {}
+	local providers = {}
 	local apkbuilds = apkbuilds_open(aportsdir, repos)
 	for a in apkbuilds:read() do
 		--	io.write(a.pkgname.." "..a.pkgver.."\t"..a.dir.."\n")
@@ -150,11 +151,11 @@ local function init_apkdb(aportsdir, repos, repodest)
 			table.insert(pkgdb[v], a)
 		end
 		-- add provides
-		if a.provides and a.provides ~= "" then
-			if pkgdb[a.provides] == nil then
-				pkgdb[a.provides] = {}
+		for _, v in pairs(a.provides) do
+			if providers[v] == nil then
+				providers[v] = {}
 			end
-			table.insert(pkgdb[a.provides], a)
+			table.insert(providers[v], a)
 		end
 		-- add to reverse dependencies
 		for dep in a:each_dependency() do
@@ -167,7 +168,7 @@ local function init_apkdb(aportsdir, repos, repodest)
 	if not apkbuilds:close() then
 		return nil
 	end
-	return pkgdb, revdeps
+	return pkgdb, revdeps, providers
 end
 
 local Aports = {}
@@ -268,6 +269,17 @@ function Aports:each_pkg_with_name(name)
 	end)
 end
 
+function Aports:each_provider_for(name)
+	return coroutine.wrap(function()
+		for index, p in pairs(self.apks[name] or {}) do
+			coroutine.yield(p, index)
+		end
+		for index, p in pairs(self.providers[name] or {}) do
+			coroutine.yield(p, index)
+		end
+	end)
+end
+
 function Aports:each()
 	return coroutine.wrap(function()
 		for name, pkglist in self:each_name() do
@@ -309,7 +321,7 @@ function Aports:each_in_build_order(namelist)
 	return coroutine.wrap(function()
 		for _, name in pairs(namelist) do
 			for dep in self:recursive_dependencies(name) do
-				for p in self:each_pkg_with_name(dep) do
+				for p in self:each_provider_for(dep) do
 					if pkgs[p.dir] then
 						coroutine.yield(p)
 						pkgs[p.dir] = nil
@@ -351,7 +363,7 @@ function M.new(aportsdir, repos, repodest)
 	else
 		h.repos = { repos }
 	end
-	h.apks, h.revdeps = init_apkdb(aportsdir, h.repos, repodest)
+	h.apks, h.revdeps, h.providers = init_apkdb(aportsdir, h.repos, repodest)
 	if h.apks == nil then
 		return nil, h.revdeps
 	end
