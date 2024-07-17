@@ -40,7 +40,7 @@ end
 
 local function split_key(str)
 	local t = {}
-	for _, key in pairs(split(str)) do
+	for _, key in pairs(split(str) or {}) do
 		t[key] = true
 	end
 	return t
@@ -236,17 +236,17 @@ function Aports:each_name()
 	end)
 end
 
-function Aports:each_reverse_dependency(pkg) --luacheck: ignore 431
+function Aports:each_reverse_dependency(pname)
 	return coroutine.wrap(function()
-		for k, v in pairs(self.revdeps[pkg] or {}) do
+		for k, v in pairs(self.revdeps[pname] or {}) do
 			coroutine.yield(k, v)
 		end
 	end)
 end
 
-function Aports:each_known_dependency(pkg) --luacheck: ignore 431
+function Aports:each_known_dependency(p)
 	return coroutine.wrap(function()
-		for dep in pkg:each_dependency() do
+		for dep in p:each_dependency() do
 			if self.apks[dep] then
 				coroutine.yield(dep)
 			end
@@ -262,8 +262,8 @@ function Aports:each_pkg_with_name(name)
 		end
 	end
 	return coroutine.wrap(function()
-		for index, pkg in pairs(self.apks[name]) do --luacheck: ignore 431
-			coroutine.yield(pkg, index)
+		for index, p in pairs(self.apks[name]) do
+			coroutine.yield(p, index)
 		end
 	end)
 end
@@ -271,8 +271,8 @@ end
 function Aports:each()
 	return coroutine.wrap(function()
 		for name, pkglist in self:each_name() do
-			for _, pkg in pairs(pkglist) do --luacheck: ignore 431
-				coroutine.yield(pkg, name)
+			for _, p in pairs(pkglist) do
+				coroutine.yield(p, name)
 			end
 		end
 	end)
@@ -280,9 +280,9 @@ end
 
 function Aports:each_aport()
 	return coroutine.wrap(function()
-		for pkg, name in self:each() do --luacheck: ignore 431
-			if name == pkg.pkgname then
-				coroutine.yield(pkg)
+		for p, name in self:each() do
+			if name == p.pkgname then
+				coroutine.yield(p)
 			end
 		end
 	end)
@@ -301,18 +301,18 @@ end
 function Aports:each_in_build_order(namelist)
 	local pkgs = {}
 	for _, name in pairs(namelist) do
-		for pkg in self:each_pkg_with_name(name) do --luacheck: ignore 431
-			pkgs[pkg.dir] = true
+		for p in self:each_pkg_with_name(name) do
+			pkgs[p.dir] = true
 		end
 	end
 
 	return coroutine.wrap(function()
 		for _, name in pairs(namelist) do
 			for dep in self:recursive_dependencies(name) do
-				for pkg in self:each_pkg_with_name(dep) do --luacheck: ignore 431
-					if pkgs[pkg.dir] then
-						coroutine.yield(pkg)
-						pkgs[pkg.dir] = nil
+				for p in self:each_pkg_with_name(dep) do
+					if pkgs[p.dir] then
+						coroutine.yield(p)
+						pkgs[p.dir] = nil
 					end
 				end
 			end
@@ -332,10 +332,10 @@ function Aports:git_describe()
 	return result
 end
 
-function Aports:known_deps_exists(pkg) --luacheck: ignore 431
-	for name in self:each_known_dependency(pkg) do
+function Aports:known_deps_exists(p)
+	for name in self:each_known_dependency(p) do
 		for dep in self:each_pkg_with_name(name) do
-			if dep.pkgname ~= pkg.pkgname and dep:relevant() and not dep:all_apks_exists() then
+			if dep.pkgname ~= p.pkgname and dep:relevant() and not dep:all_apks_exists() then
 				return nil
 			end
 		end
