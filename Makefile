@@ -1,6 +1,6 @@
 
 VERSION = 1.1.0
-LUA_VERSION = 5.2
+LUA_VERSION = 5.4
 prefix ?= /usr
 sharedir ?= $(prefix)/share
 luasharedir ?= $(sharedir)/lua/$(LUA_VERSION)

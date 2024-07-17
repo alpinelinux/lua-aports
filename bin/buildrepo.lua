@@ -1,4 +1,4 @@
-#!/usr/bin/lua5.2
+#!/usr/bin/lua5.4
 
 local abuild = require("aports.abuild")
 local apkrepo = require("aports.apkrepo")
@@ -23,8 +23,8 @@ local function info(formatstr, ...)
 end
 
 local function skip_aport(aport)
-	local dirattr = lfs.attributes(aport.dir.."/src/")
-	local fileattr = lfs.attributes(aport.dir.."/APKBUILD")
+	local dirattr = lfs.attributes(aport.dir .. "/src/")
+	local fileattr = lfs.attributes(aport.dir .. "/APKBUILD")
 	if not dirattr or not fileattr then
 		return false
 	end
@@ -48,7 +48,7 @@ local function run_plugins(dirpath, func, ...)
 	end
 	table.sort(flist)
 	for i = 1, #flist do
-		local m = dofile(dirpath.."/"..flist[i])
+		local m = dofile(dirpath .. "/" .. flist[i])
 		if type(m[func]) == "function" then
 			m[func](...)
 		end
@@ -79,13 +79,12 @@ local function logfile_path(logdirbase, repo, aport)
 	if not lfs.attributes(dir) then
 		local path = ""
 		for n in string.gmatch(dir, "[^/]+") do
-			path = path.."/"..n
+			path = path .. "/" .. n
 			lfs.mkdir(path)
 		end
 	end
 	return ("%s/%s-%s-r%s.log"):format(dir, aport.pkgname, aport.pkgver, aport.pkgrel)
 end
-
 
 local function build_aport(aport, aportsdir, repodest, logfile, do_rootbld)
 	local success, errmsg = lfs.chdir(aport.dir)
@@ -97,11 +96,9 @@ local function build_aport(aport, aportsdir, repodest, logfile, do_rootbld)
 	if logfile ~= nil then
 		logredirect = ("> '%s' 2>&1"):format(logfile)
 	end
-	local cmd = ("APORTSDIR='%s' REPODEST='%s' abuild -r -m %s"):
-		format(aportsdir, repodest, logredirect)
+	local cmd = ("APORTSDIR='%s' REPODEST='%s' abuild -r -m %s"):format(aportsdir, repodest, logredirect)
 	if do_rootbld ~= nil then
-		cmd = ("APORTSDIR='%s' REPODEST='%s' abuild -m %s rootbld"):
-			format(aportsdir, repodest, logredirect)
+		cmd = ("APORTSDIR='%s' REPODEST='%s' abuild -m %s rootbld"):format(aportsdir, repodest, logredirect)
 	end
 	success = os.execute(cmd)
 	if not success then
@@ -111,10 +108,17 @@ local function build_aport(aport, aportsdir, repodest, logfile, do_rootbld)
 end
 
 local function log_progress(progress, repo, aport)
-	info("%d/%d %d/%d %s/%s %s-r%s",
-		progress.tried, progress.total,
-		progress.repo_built, progress.repo_total,
-		repo, aport.pkgname, aport.pkgver, aport.pkgrel)
+	info(
+		"%d/%d %d/%d %s/%s %s-r%s",
+		progress.tried,
+		progress.total,
+		progress.repo_built,
+		progress.repo_total,
+		repo,
+		aport.pkgname,
+		aport.pkgver,
+		aport.pkgrel
+	)
 end
 -----------------------------------------------------------------
 local opthelp = [[
@@ -133,14 +137,17 @@ local opthelp = [[
 ]]
 
 local function usage(exitcode)
-	io.stdout:write((
-		"Usage: %s [-hknps] [-a DIR] [-d DIR] [-l DIR] [-r REPO] REPO...\n"..
-		"Options:\n%s\n"):format(_G.arg[0], opthelp))
+	io.stdout:write(
+		("Usage: %s [-hknps] [-a DIR] [-d DIR] [-l DIR] [-r REPO] REPO...\n" .. "Options:\n%s\n"):format(
+			_G.arg[0],
+			opthelp
+		)
+	)
 	os.exit(exitcode)
 end
 
 local opts, args = optarg.from_opthelp(opthelp)
-if not opts  or #args == 0 then
+if not opts or #args == 0 then
 	usage(1)
 end
 
@@ -164,12 +171,14 @@ conf.repodest = opts.d or conf.repodest or abuild.repodest or ("%s/packages"):fo
 conf.logdir = opts.l or conf.logdir
 
 if opts.n then
-	build_aport = function() return true end
+	build_aport = function()
+		return true
+	end
 end
 
 local stats = {}
 for _, repo in pairs(args) do
-	local db = require('aports.db').new(conf.aportsdir, repo, conf.repodest)
+	local db = require("aports.db").new(conf.aportsdir, repo, conf.repodest)
 	local pkgs = {}
 	local unsorted = {}
 	stats[repo] = {}
@@ -254,8 +263,7 @@ for _, repo in pairs(args) do
 	-- generate new apkindex
 	if not opts.n and (built > 0 or deleted > 0) then
 		info("Updating apk index")
-		apkrepo.update_index(("%s/%s"):format(conf.repodest, repo),
-				abuild.arch, db:git_describe())
+		apkrepo.update_index(("%s/%s"):format(conf.repodest, repo), abuild.arch, db:git_describe())
 	end
 	stats[repo].built = built
 	stats[repo].tried = tried

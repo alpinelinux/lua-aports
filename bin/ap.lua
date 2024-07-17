@@ -1,4 +1,4 @@
-#!/usr/bin/lua5.2
+#!/usr/bin/lua5.4
 
 local lfs = require("lfs")
 
