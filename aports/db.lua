@@ -178,11 +178,18 @@ function Aports:recursive_dependencies(pkgname)
 
 	return coroutine.wrap(function()
 		local function recurs(pn)
-			if not pn or visited[pn] or not apkdb[pn] then
+			if not pn or visited[pn] or (not apkdb[pn] and not self.providers[pn]) then
 				return nil
 			end
 			visited[pn] = true
-			for _, p in pairs(apkdb[pn]) do
+			for _, p in pairs(apkdb[pn] or {}) do
+				for dep in p:each_dependency() do
+					if recurs(dep) then
+						return true
+					end
+				end
+			end
+			for _, p in pairs(self.providers[pn] or {}) do
 				for dep in p:each_dependency() do
 					if recurs(dep) then
 						return true
