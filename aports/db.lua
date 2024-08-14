@@ -255,7 +255,7 @@ end
 function Aports:each_known_dependency(p)
 	return coroutine.wrap(function()
 		for dep in p:each_dependency() do
-			if self.apks[dep] then
+			if self.apks[dep] or self.providers[dep] then
 				coroutine.yield(dep)
 			end
 		end
