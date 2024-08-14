@@ -166,6 +166,20 @@ describe("db", function()
 			end
 			assert.same({ "b" }, res)
 		end)
+		it("should list a provides as a known dependencies", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", depends = "b c" },
+					{ pkgname = "d", provides = "b" },
+				},
+			})
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			local res = {}
+			for dep in repo1:each_known_dependency(repo1.apks.a[1]) do
+				table.insert(res, dep)
+			end
+			assert.same({ "b" }, res)
+		end)
 	end)
 
 	describe("each_aport", function()
