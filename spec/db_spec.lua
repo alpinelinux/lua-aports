@@ -247,6 +247,9 @@ describe("db", function()
 					{ pkgname = "b", depends = "d" },
 					{ pkgname = "c", provides = "d>0" },
 					{ pkgname = "d" },
+					{ pkgname = "docs", depends = "doc-provider man-pages" },
+					{ pkgname = "man-pages" },
+					{ pkgname = "mandoc", provides = "doc-provider mdocml=1.0-r0" },
 				},
 			})
 		end)
@@ -265,6 +268,14 @@ describe("db", function()
 				table.insert(res, a.pkgname)
 			end
 			assert.same({ "d", "a" }, res)
+		end)
+		it("should build docs last", function()
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			local res = {}
+			for a in repo1:each_in_build_order({ "docs", "man-pages", "mandoc" }) do
+				table.insert(res, a.pkgname)
+			end
+			assert.same("docs", res[3])
 		end)
 	end)
 
