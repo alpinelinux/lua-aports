@@ -15,9 +15,10 @@ aportsfiles = \
 
 binfiles = buildrepo.lua ap.lua
 
-all:
-	@echo "To install run:"
-	@echo "  make install DESTDIR=<targetroot>"
+all: doc
+
+doc: buildrepo.1.scd
+	scdoc < buildrepo.1.scd > buildrepo.1
 
 install: $(addprefix bin/,$(binfiles)) $(addprefix aports/,$(aportsfiles))
 	install -d $(DESTDIR)$(luasharedir)/aports \
@@ -27,6 +28,7 @@ install: $(addprefix bin/,$(binfiles)) $(addprefix aports/,$(aportsfiles))
 	for file in $(binfiles); do \
 		install -m755 bin/$$file $(DESTDIR)$(bindir)/$${file%.lua} || exit 1; \
 	done
+	install -Dm644 buildrepo.1	${DESTDIR}${PREFIX}/share/man/man1/buildrepo.1
 
 check: lint
 	env -i busted-$(LUA_VERSION) --verbose
