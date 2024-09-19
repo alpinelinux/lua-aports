@@ -129,7 +129,7 @@ local opthelp = [[
  -h, --help            Show this help and exit
  -l, --logdir=DIR      Create build logs in DIR/REPO/pkgname/ instead of stdout
  -k, --keep-going      Keep going, even if packages fails
- -n, --dry-run         Dry run. Don't acutally build or delete, just print
+ -n, --dry-run         Dry run. Don't actually build or delete, just print
  -p, --purge           Purge obsolete packages from REPODIR after build
  -r, --deps-repo=REPO  Dependencies are found in REPO
  -s, --skip-failed     Skip those who previously failed (src dir exists)
