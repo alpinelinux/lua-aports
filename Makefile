@@ -23,12 +23,10 @@ doc: buildrepo.1 ap.1
 	scdoc < '$<' > '$@'
 
 install: $(addprefix bin/,$(binfiles)) $(addprefix aports/,$(aportsfiles))
-	install -d $(DESTDIR)$(luasharedir)/aports \
-		$(DESTDIR)$(bindir)
-	install -m644 $(addprefix aports/,$(aportsfiles)) \
+	install -Dm644 $(addprefix aports/,$(aportsfiles)) \
 		$(DESTDIR)$(luasharedir)/aports/
 	for file in $(binfiles); do \
-		install -m755 bin/$$file $(DESTDIR)$(bindir)/$${file%.lua} || exit 1; \
+		install -Dm755 bin/$$file $(DESTDIR)$(bindir)/$${file%.lua} || exit 1; \
 	done
 	install -Dm644 buildrepo.1	$(DESTDIR)$(prefix)/share/man/man1/buildrepo.1
 	install -Dm644 ap.1			$(DESTDIR)$(prefix)/share/man/man1/ap.1
