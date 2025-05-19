@@ -22,7 +22,7 @@ doc: buildrepo.1 ap.1
 %: %.scd
 	scdoc < '$<' > '$@'
 
-install: $(addprefix bin/,$(binfiles)) $(addprefix aports/,$(aportsfiles))
+install: all $(addprefix bin/,$(binfiles)) $(addprefix aports/,$(aportsfiles))
 	install -Dm644 $(addprefix aports/,$(aportsfiles)) \
 		$(DESTDIR)$(luasharedir)/aports/
 	for file in $(binfiles); do \
