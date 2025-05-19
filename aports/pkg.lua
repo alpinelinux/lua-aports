@@ -88,12 +88,8 @@ function M.arch_enabled(pkg)
 	return not pkg.arch["!" .. abuild.arch] and (pkg.arch.all or pkg.arch.noarch or pkg.arch[abuild.arch])
 end
 
-function M.libc_enabled(pkg)
-	return not pkg.options["!libc_" .. abuild.libc]
-end
-
 function M.relevant(pkg)
-	return pkg:arch_enabled() and pkg:libc_enabled()
+	return pkg:arch_enabled()
 end
 
 function M.each_dependency(pkg)
