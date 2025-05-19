@@ -298,18 +298,21 @@ describe("db", function()
 			mkrepos(tmpdir, {
 				repo1 = {
 					{ pkgname = "a", arch = "all", depends = "b" },
-					{ pkgname = "b", arch = "all", depends = "c" },
+					{ pkgname = "b", arch = "all", depends = "c", provides = "p=1" },
 					{ pkgname = "c" },
+					{ pkgname = "d", arch = "all", depends = "p" },
 				},
 			})
 			local repo1 = require("aports.db").new(tmpdir, "repo1")
 			local res = {}
 			assert.is_not_true(repo1:known_deps_exists(repo1.apks.a[1]))
+			assert.is_not_true(repo1:known_deps_exists(repo1.apks.d[1]))
 			assert.is_true(repo1:known_deps_exists(repo1.apks.b[1]))
 			repo1.apks.b[1].apk_file_exists = function(self)
 				return true
 			end
 			assert.is_true(repo1:known_deps_exists(repo1.apks.a[1]))
+			assert.is_true(repo1:known_deps_exists(repo1.apks.d[1]))
 		end)
 	end)
 

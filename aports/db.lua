@@ -559,7 +559,7 @@ end
 
 function Aports:known_deps_exists(p)
 	for name in self:each_known_dependency(p) do
-		for dep in self:each_pkg_with_name(name) do
+		for dep in self:each_provider_for(name) do
 			if dep.pkgname ~= p.pkgname and dep:relevant() and not dep:all_apks_exists() then
 				return nil
 			end
