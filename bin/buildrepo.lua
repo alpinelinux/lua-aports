@@ -254,8 +254,8 @@ for _, repo in pairs(args) do
 				info("Deleting %s", file)
 				if not opts.n then
 					os.remove(("%s/%s"):format(apkrepodir, file))
-					deleted = deleted + 1
 				end
+				deleted = deleted + 1
 			end
 		end
 	end
