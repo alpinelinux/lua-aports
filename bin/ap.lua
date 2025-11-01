@@ -189,11 +189,20 @@ if #repodirs == 0 then
 	end
 end
 
-if subcmd[cmd] and type(subcmd[cmd].run) == "function" then
-	for _, dir in pairs(repodirs) do
-		local db = require("aports.db").new(dir:match("(.*)/([^/]*)"))
-		subcmd[cmd].run(db, opts)
+local aportsdir = nil
+local repos = {}
+
+for _, dir in ipairs(repodirs) do
+	local base, repo = dir:match("(.*)/([^/]*)")
+	if aportsdir == nil then
+		aportsdir = base
 	end
+	repos[#repos + 1] = repo
+end
+
+if subcmd[cmd] and type(subcmd[cmd].run) == "function" then
+	local db = require("aports.db").new(aportsdir, repos)
+	subcmd[cmd].run(db, opts)
 else
 	io.stderr:write(cmd .. ": invalid subcommand\n")
 end
