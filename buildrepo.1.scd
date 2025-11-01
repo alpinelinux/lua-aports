@@ -57,7 +57,7 @@ CBUILD=aarch64 buildrepo -d "$HOME/packages" -a "$(pwd)" -p -R builder
 
 # SEE ALSO
 
-abuild(1), APKBUILD(5), apk(8)
+abuild(1), APKBUILD(5), apk(8), ap(1)
 
 # AUTHORS
 
