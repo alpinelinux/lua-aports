@@ -135,6 +135,7 @@ local function init_apkdb(aportsdir, repos, repodest)
 	local pkgdb = {}
 	local revdeps = {}
 	local providers = {}
+	local dirs = {}
 	local apkbuilds = apkbuilds_open(aportsdir, repos)
 	for a in apkbuilds:read() do
 		--	io.write(a.pkgname.." "..a.pkgver.."\t"..a.dir.."\n")
@@ -164,11 +165,12 @@ local function init_apkdb(aportsdir, repos, repodest)
 			end
 			table.insert(revdeps[dep], a)
 		end
+		dirs[a.dir] = a
 	end
 	if not apkbuilds:close() then
 		return nil
 	end
-	return pkgdb, revdeps, providers
+	return pkgdb, revdeps, providers, dirs
 end
 
 local Aports = {}
@@ -370,7 +372,7 @@ function M.new(aportsdir, repos, repodest)
 	else
 		h.repos = { repos }
 	end
-	h.apks, h.revdeps, h.providers = init_apkdb(aportsdir, h.repos, repodest)
+	h.apks, h.revdeps, h.providers, h.dirs = init_apkdb(aportsdir, h.repos, repodest)
 	if h.apks == nil then
 		return nil, h.revdeps
 	end
