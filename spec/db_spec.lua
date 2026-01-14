@@ -617,4 +617,77 @@ describe("db", function()
 			assert.same(expected, sorted)
 		end)
 	end)
+
+	describe("cycle_path_for_sorted_component", function()
+		local function edgeset_pkgs(db, comp_dirs)
+			local set = {}
+			local comp_set = {}
+			for i = 1, #comp_dirs do
+				comp_set[comp_dirs[i]] = true
+			end
+
+			for i = 1, #comp_dirs do
+				local vdir = comp_dirs[i]
+				local v = assert(db.dirs[vdir] and db.dirs[vdir].pkgname)
+				for wdir in db:each_outgoing_aport(vdir) do
+					if comp_set[wdir] then
+						local w = assert(db.dirs[wdir] and db.dirs[wdir].pkgname)
+						set[v .. "->" .. w] = true
+					end
+				end
+			end
+			return set
+		end
+
+		it("should find a shorter representative cycle path (dir graph)", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					-- One SCC with 6 nodes:
+					-- ring ensures SCC; plus a<->c shortcut makes a short cycle possible
+					{ pkgname = "a", depends = "b", makedepends = "c" },
+					{ pkgname = "b", depends = "c" },
+					{ pkgname = "c", depends = "d", makedepends = "a" },
+					{ pkgname = "d", depends = "e" },
+					{ pkgname = "e", depends = "f" },
+					{ pkgname = "f", depends = "a" },
+				},
+			})
+
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+
+			local a_dir = repo1.apks.a[1].dir
+			local b_dir = repo1.apks.b[1].dir
+			local c_dir = repo1.apks.c[1].dir
+			local d_dir = repo1.apks.d[1].dir
+			local e_dir = repo1.apks.e[1].dir
+			local f_dir = repo1.apks.f[1].dir
+
+			-- Full SCC membership (dirs)
+			local cycles = repo1:circular_dependency_groups_sorted()
+			assert.equal(1, #cycles)
+
+			local expected = { a_dir, b_dir, c_dir, d_dir, e_dir, f_dir }
+			table.sort(expected)
+			assert.same(expected, cycles[1])
+
+			-- Representative path inside SCC (pkgnames)
+			local comp = cycles[1] -- sorted dirs
+			local path = repo1:cycle_path_for_sorted_component(comp)
+			assert.not_nil(path)
+
+			-- starts/ends at the canonical start pkgname ("a" here)
+			assert.equal("a", path[1])
+			assert.equal("a", path[#path])
+
+			-- shorter than full SCC listing (+1 for repeated start)
+			assert.is_true(#path < (#comp + 1))
+
+			-- each step is a valid edge inside SCC (pkgname graph derived from dir edges)
+			local es = edgeset_pkgs(repo1, comp)
+			for i = 1, #path - 1 do
+				assert.is_true(es[path[i] .. "->" .. path[i + 1]])
+			end
+		end)
+	end)
 end)

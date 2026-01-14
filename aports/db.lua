@@ -492,6 +492,59 @@ function Aports:circular_dependency_groups_sorted(roots)
 	return cycles
 end
 
+-- Find a representative cycle path inside one SCC component (dir graph).
+-- Input `comp` must be sorted list of dirs.
+-- Returns {pkgA, pkgB, ..., pkgA} or nil.
+function Aports:cycle_path_for_sorted_component(comp)
+	local comp_set = {}
+	for i = 1, #comp do
+		comp_set[comp[i]] = true
+	end
+
+	local start_dir = comp[1]
+	local start_pkg = self.dirs[start_dir].pkgname
+
+	-- BFS from start_dir within SCC, find edge back to start_dir
+	local parent = {}
+	local q = { start_dir }
+	local qh = 1
+	parent[start_dir] = false
+
+	while qh <= #q do
+		local v = q[qh]
+		qh = qh + 1
+
+		for w in self:each_outgoing_aport(v) do
+			if comp_set[w] then
+				if w == start_dir and v ~= start_dir then
+					-- reconstruct dir path
+					local rev = { v }
+					local cur = parent[v]
+					while cur and cur ~= start_dir do
+						rev[#rev + 1] = cur
+						cur = parent[cur]
+					end
+
+					-- map dirs → pkgnames
+					local path = { start_pkg }
+					for i = #rev, 1, -1 do
+						path[#path + 1] = self.dirs[rev[i]].pkgname
+					end
+					path[#path + 1] = start_pkg
+					return path
+				end
+
+				if parent[w] == nil then
+					parent[w] = v
+					q[#q + 1] = w
+				end
+			end
+		end
+	end
+
+	return nil
+end
+
 function Aports:git_describe()
 	local cmd = ("git --git-dir %s/.git describe"):format(self.aportsdir)
 	local f = io.popen(cmd)
