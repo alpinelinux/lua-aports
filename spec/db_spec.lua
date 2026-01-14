@@ -392,4 +392,57 @@ describe("db", function()
 			assert.equal(repo1.apks.b[1].dir, dirs[1])
 		end)
 	end)
+
+	describe("each_graph_aport_node", function()
+		it("should yield unique APKBUILD dirs, deduplicating subpackages", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					{ pkgname = "a", subpackages = "a1 a2" },
+					{ pkgname = "b" },
+				},
+			})
+
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+
+			local dirs = {}
+			for d in repo1:each_graph_aport_node() do
+				table.insert(dirs, d)
+			end
+
+			-- Convert to set for order independence
+			local got = {}
+			for _, d in ipairs(dirs) do
+				got[d] = true
+			end
+
+			-- Expect exactly two unique dirs: one for a (and its subpkgs), one for b
+			local a_dir = repo1.apks.a[1].dir
+			local b_dir = repo1.apks.b[1].dir
+
+			assert.is_true(got[a_dir])
+			assert.is_true(got[b_dir])
+			assert.equal(2, #dirs)
+		end)
+
+		it("should not yield duplicate dirs even if multiple keys map to same origin", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					-- "b" produces subpackage "c", so apks["c"] exists but shares b.dir
+					{ pkgname = "b", subpackages = "c" },
+				},
+			})
+
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+
+			local dirs = {}
+			for d in repo1:each_graph_aport_node() do
+				table.insert(dirs, d)
+			end
+
+			assert.equal(1, #dirs)
+			assert.equal(repo1.apks.b[1].dir, dirs[1])
+		end)
+	end)
 end)

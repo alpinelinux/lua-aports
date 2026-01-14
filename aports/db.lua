@@ -359,6 +359,19 @@ function Aports:each_outgoing_aport(dir)
 	end)
 end
 
+-- Iterate unique aports (APKBUILD origins) as graph nodes.
+function Aports:each_graph_aport_node()
+	return coroutine.wrap(function()
+		local seen = {}
+		for p in self:each_aport() do
+			if p.dir and not seen[p.dir] then
+				seen[p.dir] = true
+				coroutine.yield(p.dir)
+			end
+		end
+	end)
+end
+
 function Aports:git_describe()
 	local cmd = ("git --git-dir %s/.git describe"):format(self.aportsdir)
 	local f = io.popen(cmd)
