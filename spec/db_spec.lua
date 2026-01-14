@@ -445,4 +445,93 @@ describe("db", function()
 			assert.equal(repo1.apks.b[1].dir, dirs[1])
 		end)
 	end)
+
+	describe("circular_dependency_groups (aport-level dirs)", function()
+		local function to_set(list)
+			local s = {}
+			for i = 1, #list do
+				s[list[i]] = true
+			end
+			return s
+		end
+
+		local function normalize_cycles(cycles)
+			-- Make comparison stable: sort each component, then sort list by concat
+			for i = 1, #cycles do
+				table.sort(cycles[i])
+			end
+			table.sort(cycles, function(a, b)
+				return table.concat(a, " ") < table.concat(b, " ")
+			end)
+			return cycles
+		end
+
+		it("should find cycles as SCCs over aport dirs", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					-- Cycle 1: a -> b -> a (different dirs)
+					{ pkgname = "a", depends = "b" },
+					{ pkgname = "b", depends = "a" },
+
+					-- Cycle 2: c -> d -> e -> c
+					{ pkgname = "c", depends = "d" },
+					{ pkgname = "d", depends = "e" },
+					{ pkgname = "e", depends = "c" },
+
+					-- Noise (acyclic)
+					{ pkgname = "x", depends = "a" },
+				},
+			})
+
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+
+			local cycles = normalize_cycles(repo1:circular_dependency_groups())
+
+			-- Expected cycles are lists of dirs
+			local a_dir = repo1.apks.a[1].dir
+			local b_dir = repo1.apks.b[1].dir
+			local c_dir = repo1.apks.c[1].dir
+			local d_dir = repo1.apks.d[1].dir
+			local e_dir = repo1.apks.e[1].dir
+
+			local expected = normalize_cycles({
+				{ a_dir, b_dir },
+				{ c_dir, d_dir, e_dir },
+			})
+
+			assert.same(expected, cycles)
+		end)
+
+		it("should restrict to cycles reachable from roots (pkgnames)", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					-- Cycle 1: a <-> b
+					{ pkgname = "a", depends = "b" },
+					{ pkgname = "b", depends = "a" },
+
+					-- Cycle 2: c <-> d
+					{ pkgname = "c", depends = "d" },
+					{ pkgname = "d", depends = "c" },
+
+					-- Acyclic root that reaches only cycle 1
+					{ pkgname = "root", depends = "a" },
+				},
+			})
+
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+
+			local a_dir = repo1.apks.a[1].dir
+			local b_dir = repo1.apks.b[1].dir
+
+			local cycles = normalize_cycles(repo1:circular_dependency_groups({ "root" }))
+
+			local expected = normalize_cycles({
+				{ a_dir, b_dir },
+			})
+
+			assert.same(expected, cycles)
+		end)
+	end)
 end)

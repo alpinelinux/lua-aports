@@ -372,6 +372,113 @@ function Aports:each_graph_aport_node()
 	end)
 end
 
+-- Compute SCCs (Tarjan) and return only those that form cycles.
+-- If roots is provided (array of pkgnames), restrict to the reachable subgraph from those roots.
+function Aports:circular_dependency_groups(roots)
+	-- Build node set (dirs)
+	local nodes = {}
+
+	if roots and #roots > 0 then
+		-- Resolve root pkgnames -> dirs, then do reachability closure on dir-graph
+		local stack = {}
+
+		for i = 1, #roots do
+			local name = roots[i]
+			-- A name can be a pkgname or subpackage name; both live in self.apks[name]
+			for p in self:each_pkg_with_name(name) do
+				if p.dir and not nodes[p.dir] then
+					nodes[p.dir] = true
+					stack[#stack + 1] = p.dir
+				end
+			end
+		end
+
+		while #stack > 0 do
+			local v = stack[#stack]
+			stack[#stack] = nil
+			for depdir in self:each_outgoing_aport(v) do
+				if not nodes[depdir] then
+					nodes[depdir] = true
+					stack[#stack + 1] = depdir
+				end
+			end
+		end
+	else
+		for dir in self:each_graph_aport_node() do
+			nodes[dir] = true
+		end
+	end
+
+	-- Tarjan SCC
+	local index = 0
+	local idx = {}
+	local low = {}
+	local onstack = {}
+	local stack = {}
+
+	local function push(v)
+		stack[#stack + 1] = v
+		onstack[v] = true
+	end
+	local function pop()
+		local v = stack[#stack]
+		stack[#stack] = nil
+		onstack[v] = nil
+		return v
+	end
+
+	local sccs = {}
+
+	local function strongconnect(v)
+		index = index + 1
+		idx[v] = index
+		low[v] = index
+		push(v)
+
+		for dep in self:each_outgoing_aport(v) do
+			if nodes[dep] then
+				if not idx[dep] then
+					strongconnect(dep)
+					if low[dep] < low[v] then
+						low[v] = low[dep]
+					end
+				elseif onstack[dep] then
+					if idx[dep] < low[v] then
+						low[v] = idx[dep]
+					end
+				end
+			end
+		end
+
+		if low[v] == idx[v] then
+			local comp = {}
+			while true do
+				local w = pop()
+				comp[#comp + 1] = w
+				if w == v then
+					break
+				end
+			end
+			sccs[#sccs + 1] = comp
+		end
+	end
+
+	for v in pairs(nodes) do
+		if not idx[v] then
+			strongconnect(v)
+		end
+	end
+
+	-- Filter SCCs to actual cycles
+	local cycles = {}
+	for _, comp in ipairs(sccs) do
+		if #comp > 1 then
+			cycles[#cycles + 1] = comp
+		end
+	end
+	return cycles
+end
+
 function Aports:git_describe()
 	local cmd = ("git --git-dir %s/.git describe"):format(self.aportsdir)
 	local f = io.popen(cmd)
