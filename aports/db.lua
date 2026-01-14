@@ -363,7 +363,7 @@ function Aports:known_deps_exists(p)
 end
 
 function M.new(aportsdir, repos, repodest)
-	local h = Aports
+	local h = setmetatable({}, { __index = Aports })
 	h.aportsdir = aportsdir
 	if type(repos) == "table" then
 		h.repos = repos
