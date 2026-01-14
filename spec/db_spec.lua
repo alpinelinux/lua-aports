@@ -534,4 +534,87 @@ describe("db", function()
 			assert.same(expected, cycles)
 		end)
 	end)
+
+	describe("circular_dependency_groups_sorted (aport-level dirs)", function()
+		local function normalize_cycles(cycles)
+			for i = 1, #cycles do
+				table.sort(cycles[i])
+			end
+			table.sort(cycles, function(a, b)
+				return table.concat(a, " ") < table.concat(b, " ")
+			end)
+			return cycles
+		end
+
+		it("should return the same cycles as circular_dependency_groups, but sorted", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					-- Cycle 1: b <-> a (intentionally declared reversed)
+					{ pkgname = "b", depends = "a" },
+					{ pkgname = "a", depends = "b" },
+
+					-- Cycle 2: e -> d -> c -> e (declared out of order)
+					{ pkgname = "e", depends = "d" },
+					{ pkgname = "d", depends = "c" },
+					{ pkgname = "c", depends = "e" },
+
+					-- Noise
+					{ pkgname = "x", depends = "a" },
+				},
+			})
+
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+
+			local unsorted = repo1:circular_dependency_groups()
+			local sorted = repo1:circular_dependency_groups_sorted()
+
+			-- The sorted version should equal a normalized view of the unsorted result
+			assert.same(normalize_cycles(unsorted), sorted)
+
+			-- And match explicit expected ordering/content
+			local a_dir = repo1.apks.a[1].dir
+			local b_dir = repo1.apks.b[1].dir
+			local c_dir = repo1.apks.c[1].dir
+			local d_dir = repo1.apks.d[1].dir
+			local e_dir = repo1.apks.e[1].dir
+
+			local expected = normalize_cycles({
+				{ a_dir, b_dir },
+				{ c_dir, d_dir, e_dir },
+			})
+			assert.same(expected, sorted)
+		end)
+
+		it("should return sorted cycles restricted to reachable subgraph from roots (pkgnames)", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					-- Cycle 1: a <-> b
+					{ pkgname = "a", depends = "b" },
+					{ pkgname = "b", depends = "a" },
+
+					-- Cycle 2: c <-> d (unreachable from root)
+					{ pkgname = "c", depends = "d" },
+					{ pkgname = "d", depends = "c" },
+
+					-- Root reaches only cycle 1
+					{ pkgname = "root", depends = "a" },
+				},
+			})
+
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+
+			local root_dir = repo1.apks.root[1].dir
+			local a_dir = repo1.apks.a[1].dir
+			local b_dir = repo1.apks.b[1].dir
+
+			local sorted = repo1:circular_dependency_groups_sorted({ "root" })
+
+			local expected = normalize_cycles({
+				{ a_dir, b_dir },
+			})
+			assert.same(expected, sorted)
+		end)
+	end)
 end)

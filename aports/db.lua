@@ -479,6 +479,19 @@ function Aports:circular_dependency_groups(roots)
 	return cycles
 end
 
+function Aports:circular_dependency_groups_sorted(roots)
+	local cycles = self:circular_dependency_groups(roots)
+
+	for i = 1, #cycles do
+		table.sort(cycles[i])
+	end
+	table.sort(cycles, function(a, b)
+		return table.concat(a, " ") < table.concat(b, " ")
+	end)
+
+	return cycles
+end
+
 function Aports:git_describe()
 	local cmd = ("git --git-dir %s/.git describe"):format(self.aportsdir)
 	local f = io.popen(cmd)
