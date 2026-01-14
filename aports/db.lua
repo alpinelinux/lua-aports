@@ -341,6 +341,24 @@ function Aports:each_in_build_order(namelist)
 	end)
 end
 
+-- Iterate unique outgoing aports (APKBUILD dirs) for a given aport dir.
+-- Edges represent build-time dependencies crossing APKBUILD boundaries.
+function Aports:each_outgoing_aport(dir)
+	local p = self.dirs[dir]
+	return coroutine.wrap(function()
+		local seen = {}
+		for depname in self:each_known_dependency(p) do
+			for prov in self:each_provider_for(depname) do
+				-- Ignore deps that resolve to the same aport
+				if prov.dir ~= p.dir and not seen[prov.dir] then
+					seen[prov.dir] = true
+					coroutine.yield(prov.dir)
+				end
+			end
+		end
+	end)
+end
+
 function Aports:git_describe()
 	local cmd = ("git --git-dir %s/.git describe"):format(self.aportsdir)
 	local f = io.popen(cmd)

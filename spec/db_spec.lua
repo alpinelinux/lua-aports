@@ -312,4 +312,84 @@ describe("db", function()
 			assert.is_true(repo1:known_deps_exists(repo1.apks.a[1]))
 		end)
 	end)
+
+	describe("each_outgoing_aport", function()
+		it("should yield unique outgoing aport dirs, skipping same-dir deps and including provides", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					-- Origin aport "a" (dir .../a). It depends on:
+					-- - b (real pkg)
+					-- - virt (only provided)
+					-- - a1 (subpkg in same dir -> should be ignored)
+					{ pkgname = "a", depends = "b virt a1", subpackages = "a1" },
+
+					-- Real provider for b in its own dir
+					{ pkgname = "b" },
+
+					-- Provider for virt in its own dir
+					{ pkgname = "pvirt", provides = "virt" },
+
+					-- Noise: another provider for virt in different dir (should not duplicate)
+					{ pkgname = "pvirt2", provides = "virt" },
+				},
+			})
+
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+
+			-- Get the aport object for "a" (origin package)
+			local a_aport = repo1.apks.a[1]
+			assert.equal("a", a_aport.pkgname)
+
+			local dirs = {}
+			for d in repo1:each_outgoing_aport(a_aport.dir) do
+				table.insert(dirs, d)
+			end
+
+			-- The dirs are filesystem paths; compare as a set to avoid ordering assumptions
+			local got = {}
+			for _, d in ipairs(dirs) do
+				got[d] = true
+			end
+
+			-- Expected: outgoing dirs include b's dir and the virt providers' dirs,
+			-- but NOT a's own dir (via subpackage a1).
+			local b_dir = repo1.apks.b[1].dir
+			local v1_dir = repo1.apks.pvirt[1].dir
+			local v2_dir = repo1.apks.pvirt2[1].dir
+
+			assert.is_true(got[b_dir])
+			-- Should include at least one virt provider dir; both are acceptable,
+			-- but since we dedup by prov.dir, and providers are in different dirs,
+			-- both will appear (distinct outgoing aports).
+			assert.is_true(got[v1_dir])
+			assert.is_true(got[v2_dir])
+
+			-- Ensure we did not include a's own dir (same-dir dep via a1)
+			assert.is_nil(got[a_aport.dir])
+		end)
+
+		it("should deduplicate outgoing dirs when multiple deps resolve to the same dir", function()
+			mkrepos(tmpdir, {
+				repo1 = {
+					-- a depends on b and c, but b and c are produced from same APKBUILD dir (subpackage)
+					{ pkgname = "x", depends = "b c" },
+					{ pkgname = "b", subpackages = "c" }, -- c is subpackage of b (same dir as b)
+				},
+			})
+
+			local repo1 = require("aports.db").new(tmpdir, "repo1")
+			assert.not_nil(repo1)
+
+			local x_aport = repo1.apks.x[1]
+			local dirs = {}
+			for d in repo1:each_outgoing_aport(x_aport.dir) do
+				table.insert(dirs, d)
+			end
+
+			-- Both b and c resolve to the same dir (b's dir), so we should get it once
+			assert.equal(1, #dirs)
+			assert.equal(repo1.apks.b[1].dir, dirs[1])
+		end)
+	end)
 end)
