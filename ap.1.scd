@@ -32,6 +32,9 @@ dependencies, and build requirements.
 *builddirs* _PKG_...
 	Print the build directories for specified packages in build order.
 
+*circular-aports* [_PKG_ ...]
+    Find aports with circular build time dependencies.
+
 *dump-json*
 	Dump all abuilds from aports tree to JSON.
 

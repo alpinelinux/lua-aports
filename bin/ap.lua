@@ -129,6 +129,20 @@ subcmd["toplevel-aports"] = {
 	end,
 }
 
+subcmd["circular-aports"] = {
+	desc = "Detect circular dependencies (SCC) in make-dependency graph",
+	usage = "[PKG...]",
+	run = function(db, opts)
+		local cycles = db:circular_dependency_groups_sorted(opts)
+		for _, comp in ipairs(cycles) do
+			if #comp > 1 then
+				local path = db:cycle_path_for_sorted_component(comp)
+				io.write("cycle: " .. table.concat(path, " -> ") .. "\n")
+			end
+		end
+	end,
+}
+
 local function print_usage()
 	io.write("usage: ap -d <DIR> SUBCOMMAND [options]\n\nSubcommands are:\n")
 	for k in pairs(subcmd) do
