@@ -23,8 +23,17 @@ dependencies, and build requirements.
 
 # SUBCOMMANDS
 
-*revdep* _PKG_...
-	Print reverse dependencies for specified packages.
+*apk-list*
+	List all apk files.
+
+*build-list*
+	List packages that can/should be rebuilt.
+
+*builddirs* _PKG_...
+	Print the build directories for specified packages in build order.
+
+*dump-json*
+	Dump all abuilds from aports tree to JSON.
 
 *list*
 	Print all packages built from aports tree.
@@ -35,20 +44,11 @@ dependencies, and build requirements.
 *recursive-revdeps* _PKG_...
 	Recursively print all reverse make dependencies for specified packages.
 
-*builddirs* _PKG_...
-	Print the build directories for specified packages in build order.
+*revdep* _PKG_...
+	Print reverse dependencies for specified packages.
 
 *sources* _PKG_...
 	List sources for specified packages.
-
-*build-list*
-	List packages that can/should be rebuilt.
-
-*apk-list*
-	List all apk files.
-
-*dump-json*
-	Dump all abuilds from aports tree to JSON.
 
 *toplevel-aports*
 	List top-level aports (packages with no reverse dependencies).
