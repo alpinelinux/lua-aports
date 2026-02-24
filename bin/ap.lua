@@ -102,9 +102,9 @@ subcmd["apk-list"] = {
 	desc = "List all apk files",
 	usage = "",
 	run = function(db)
-		for pkg in db:each() do
+		for pkg, name in db:each() do
 			if pkg:relevant() then
-				print(pkg:get_apk_file_name())
+				print(pkg:get_apk_file_name(name))
 			end
 		end
 	end,
