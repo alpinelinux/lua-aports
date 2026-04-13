@@ -64,4 +64,22 @@ describe("install", function()
 		assert.equal("#!/usr/bin/lua" .. version, slurp(ap):match("([^\n]*)"))
 		assert.equal("#!/usr/bin/lua" .. version, slurp(buildrepo):match("([^\n]*)"))
 	end)
+
+	it("should install the complete package layout", function()
+		local quoted_tmpdir = shell_quote(tmpdir)
+		local ok = run("cd " .. shell_quote(cwd) .. " && make install DESTDIR=" .. quoted_tmpdir .. " prefix=/usr")
+		assert.is_true(ok)
+
+		local version = io.popen("cd " .. shell_quote(cwd) .. " && make -s print-lua-version"):read("*l")
+		assert.is_truthy(version)
+
+		assert.equal(
+			"file",
+			lfs.attributes(path.join(tmpdir, "usr/share/lua", version, "aports", "abuild.lua"), "mode")
+		)
+		assert.equal("file", lfs.attributes(path.join(tmpdir, "usr/bin/ap"), "mode"))
+		assert.equal("file", lfs.attributes(path.join(tmpdir, "usr/bin/buildrepo"), "mode"))
+		assert.equal("file", lfs.attributes(path.join(tmpdir, "usr/share/man/man1/ap.1"), "mode"))
+		assert.equal("file", lfs.attributes(path.join(tmpdir, "usr/share/man/man1/buildrepo.1"), "mode"))
+	end)
 end)
