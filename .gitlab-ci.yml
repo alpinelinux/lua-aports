@@ -1,11 +1,12 @@
 test-default:
-  image: alpine:latest
+  image: alpine:edge
   stage: test
   parallel:
     matrix:
       - LUA_VERSION: ["5.2", "5.3", "5.4", "5.5"]
   script:
-    - apk add make luacheck lua$LUA_VERSION lua$LUA_VERSION-filesystem lua$LUA_VERSION-busted lua$LUA_VERSION-posix lua$VERSION-penlight abuild
+    - apk add make luacheck lua$LUA_VERSION lua$LUA_VERSION-filesystem lua$LUA_VERSION-busted lua$LUA_VERSION-posix lua$VERSION-penlight abuild scdoc
+    - make doc
     - make check LUA_VERSION=$LUA_VERSION
   tags:
     - docker-alpine
