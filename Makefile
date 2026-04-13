@@ -27,7 +27,8 @@ install: all $(addprefix bin/,$(binfiles)) $(addprefix aports/,$(aportsfiles))
 	install -m644 $(addprefix aports/,$(aportsfiles)) \
 		$(DESTDIR)$(luasharedir)/aports/
 	for file in $(binfiles); do \
-		install -Dm755 bin/$$file $(DESTDIR)$(bindir)/$${file%.lua} || exit 1; \
+		sed '1s|^#!.*|#!/usr/bin/lua$(LUA_VERSION)|' bin/$$file > $(DESTDIR)$(bindir)/$${file%.lua} || exit 1; \
+		chmod 755 $(DESTDIR)$(bindir)/$${file%.lua} || exit 1; \
 	done
 	install -Dm644 buildrepo.1	$(DESTDIR)$(prefix)/share/man/man1/buildrepo.1
 	install -Dm644 ap.1			$(DESTDIR)$(prefix)/share/man/man1/ap.1
@@ -37,4 +38,3 @@ check: lint
 
 lint:
 	luacheck aports bin
-
