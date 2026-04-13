@@ -23,7 +23,8 @@ doc: buildrepo.1 ap.1
 	scdoc < '$<' > '$@'
 
 install: all $(addprefix bin/,$(binfiles)) $(addprefix aports/,$(aportsfiles))
-	install -Dm644 $(addprefix aports/,$(aportsfiles)) \
+	install -d $(DESTDIR)$(luasharedir)/aports/
+	install -m644 $(addprefix aports/,$(aportsfiles)) \
 		$(DESTDIR)$(luasharedir)/aports/
 	for file in $(binfiles); do \
 		install -Dm755 bin/$$file $(DESTDIR)$(bindir)/$${file%.lua} || exit 1; \
@@ -36,5 +37,4 @@ check: lint
 
 lint:
 	luacheck aports bin
-
 
