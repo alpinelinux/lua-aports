@@ -1,5 +1,5 @@
 
-VERSION = 1.3.1
+VERSION = 1.3.2
 LUA_VERSION = 5.5
 prefix ?= /usr
 sharedir ?= $(prefix)/share
@@ -14,6 +14,8 @@ aportsfiles = \
 	pkg.lua
 
 binfiles = buildrepo.lua ap.lua
+
+.PHONY: all doc install install-lib install-bin install-man print-lua-version check lint clean
 
 all: doc
 
@@ -39,6 +41,9 @@ install-bin: $(addprefix bin/,$(binfiles))
 install-man: buildrepo.1 ap.1
 	install -Dm644 buildrepo.1	$(DESTDIR)$(prefix)/share/man/man1/buildrepo.1
 	install -Dm644 ap.1			$(DESTDIR)$(prefix)/share/man/man1/ap.1
+
+clean:
+	rm -f buildrepo.1 ap.1
 
 print-lua-version:
 	@printf '%s\n' '$(LUA_VERSION)'
